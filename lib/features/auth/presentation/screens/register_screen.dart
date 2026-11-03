@@ -1,8 +1,8 @@
-
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../app/router/app_routes.dart';
 
 enum AccountType { customer, technician }
 
@@ -32,15 +32,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _acceptedTerms = false;
 
   final List<String> _categories = [
-    'Air Conditioning',
-    'Electrical',
-    'Plumbing',
-    'Home Appliances',
-    'Carpentry',
-    'Locksmith',
+    'แอร์และเครื่องทำความเย็น',
+    'ระบบไฟฟ้า',
+    'ระบบประปา',
+    'เครื่องใช้ไฟฟ้า',
+    'งานไม้และเฟอร์นิเจอร์',
+    'งานกุญแจและประตู',
   ];
 
   final Set<String> _selectedCategories = {};
+
+  static const primaryBlue = Color(0xFF2979FF);
+  static const softBlue = Color(0xFFF4F8FD);
+  static const textDark = Color(0xFF1E242B);
+  static const textMuted = Color(0xFF6C7A89);
+  static const borderColor = Color(0xFFE2E8F0);
 
   @override
   void dispose() {
@@ -57,64 +63,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String? _requiredValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'This field is required';
+      return 'กรุณากรอกข้อมูลในช่องนี้';
     }
     return null;
   }
 
   String? _emailValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Please enter your email';
+      return 'กรุณากรอกอีเมล';
     }
-
-    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$')
-        .hasMatch(value.trim())) {
-      return 'Please enter a valid email';
+    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value.trim())) {
+      return 'รูปแบบอีเมลไม่ถูกต้อง';
     }
-
     return null;
   }
 
   String? _passwordValidator(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter a password';
+      return 'กรุณากรอกรหัสผ่าน';
     }
-
     if (value.length < 8) {
-      return 'Password must be at least 8 characters';
+      return 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร';
     }
-
     return null;
   }
 
   void _handleRegister() {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_passwordController.text !=
-        _confirmPasswordController.text) {
+    if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Passwords do not match'),
-        ),
+        const SnackBar(content: Text('รหัสผ่านไม่ตรงกัน')),
       );
       return;
     }
 
-    if (_accountType == AccountType.technician &&
-        _selectedCategories.isEmpty) {
+    if (_accountType == AccountType.technician && _selectedCategories.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select at least one service'),
-        ),
+        const SnackBar(content: Text('กรุณาเลือกความถนัดอย่างน้อย 1 รายการ')),
       );
       return;
     }
 
     if (!_acceptedTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please accept the Terms & Conditions'),
-        ),
+        const SnackBar(content: Text('กรุณายอมรับเงื่อนไขและนโยบายความเป็นส่วนตัว')),
       );
       return;
     }
@@ -123,8 +116,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       SnackBar(
         content: Text(
           _accountType == AccountType.customer
-              ? 'Customer registration UI completed'
-              : 'Technician application UI completed',
+              ? 'ลงทะเบียนลูกค้าสำเร็จ'
+              : 'ส่งใบสมัครช่างเรียบร้อยแล้ว',
         ),
       ),
     );
@@ -134,7 +127,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required String label,
     required String hint,
     required TextEditingController controller,
-    IconData? icon,
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
     bool obscureText = false,
@@ -147,8 +139,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Text(
           label,
           style: const TextStyle(
-            fontWeight: FontWeight.w600,
             fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: textDark,
           ),
         ),
         const SizedBox(height: 8),
@@ -158,11 +151,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
           obscureText: obscureText,
           maxLines: obscureText ? 1 : maxLines,
           validator: validator,
+          style: const TextStyle(fontSize: 15, color: textDark),
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon:
-                icon != null ? Icon(icon) : null,
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            filled: true,
+            fillColor: Colors.white,
             suffixIcon: suffixIcon,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: borderColor, width: 1.2),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: primaryBlue, width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.2),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+            ),
           ),
         ),
       ],
@@ -171,12 +183,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Text(
         title,
         style: const TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.bold,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: textDark,
         ),
       ),
     );
@@ -186,23 +199,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Choose Account Type'),
+        _buildSectionTitle('เลือกประเภทบัญชี'),
         Row(
           children: [
             Expanded(
               child: _roleCard(
-                title: 'Customer',
-                subtitle: 'Find home services',
-                icon: Icons.person_outline,
+                title: 'ลูกค้าทั่วไป',
+                subtitle: 'หาบริการและช่างซ่อมบ้าน',
+                icon: Icons.person_rounded,
                 type: AccountType.customer,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _roleCard(
-                title: 'Technician',
-                subtitle: 'Offer your services',
-                icon: Icons.handyman_outlined,
+                title: 'ช่างมืออาชีพ',
+                subtitle: 'ลงทะเบียนรับงานซ่อม',
+                icon: Icons.handyman_rounded,
                 type: AccountType.technician,
               ),
             ),
@@ -227,35 +240,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
         });
       },
       borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 10,
-        ),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primaryLight
-              : Colors.white,
+          color: selected ? softBlue : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected
-                ? AppColors.primary
-                : AppColors.border,
-            width: selected ? 2 : 1,
+            color: selected ? primaryBlue : borderColor,
+            width: selected ? 1.8 : 1.2,
           ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: primaryBlue.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
         ),
         child: Column(
           children: [
             Icon(
               icon,
-              size: 28,
-              color: AppColors.primary,
+              size: 30,
+              color: selected ? primaryBlue : textMuted,
             ),
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                color: selected ? primaryBlue : textDark,
               ),
             ),
             const SizedBox(height: 4),
@@ -263,8 +281,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               subtitle,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 10,
-                color: AppColors.textSecondary,
+                fontSize: 11,
+                color: textMuted,
               ),
             ),
           ],
@@ -277,22 +295,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Professional Information'),
+        _buildSectionTitle('ข้อมูลความเชี่ยวชาญ'),
         const Text(
-          'Services you provide',
-          style: TextStyle(fontWeight: FontWeight.w600),
+          'ประเภทงานที่เชี่ยวชาญ',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: textDark,
+          ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: _categories.map((category) {
-            final selected =
-                _selectedCategories.contains(category);
+            final selected = _selectedCategories.contains(category);
 
             return FilterChip(
               label: Text(category),
+              labelStyle: TextStyle(
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: selected ? primaryBlue : textDark,
+              ),
               selected: selected,
+              backgroundColor: Colors.white,
+              selectedColor: softBlue,
+              side: BorderSide(
+                color: selected ? primaryBlue : borderColor,
+                width: selected ? 1.4 : 1,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              showCheckmark: false,
               onSelected: (value) {
                 setState(() {
                   if (value) {
@@ -302,100 +338,101 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   }
                 });
               },
-              selectedColor: AppColors.primaryLight,
-              checkmarkColor: AppColors.primary,
             );
           }).toList(),
         ),
         const SizedBox(height: 20),
         _buildTextField(
-          label: 'Years of Experience',
-          hint: 'e.g. 5',
+          label: 'ประสบการณ์การทำงาน (ปี)',
+          hint: 'เช่น 5',
           controller: _experienceController,
-          icon: Icons.work_outline,
           keyboardType: TextInputType.number,
           validator: _requiredValidator,
         ),
         const SizedBox(height: 16),
         _buildTextField(
-          label: 'Service Area',
-          hint: 'e.g. Bangkok, Nonthaburi',
+          label: 'พื้นที่ให้บริการ',
+          hint: 'เช่น กรุงเทพฯ, นนทบุรี',
           controller: _serviceAreaController,
-          icon: Icons.location_on_outlined,
           validator: _requiredValidator,
         ),
         const SizedBox(height: 16),
         _buildTextField(
-          label: 'About Your Experience',
-          hint: 'Describe your skills and experience',
+          label: 'แนะนำประวัติและผลงานเบื้องต้น',
+          hint: 'อธิบายทักษะ ประสบการณ์ หรือความชำนาญของคุณ',
           controller: _descriptionController,
-          icon: Icons.description_outlined,
           maxLines: 3,
           validator: _requiredValidator,
         ),
-        const SizedBox(height: 20),
-        _buildSectionTitle('Verification Documents'),
+        const SizedBox(height: 24),
+        _buildSectionTitle('เอกสารยืนยันตัวตน'),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
           decoration: BoxDecoration(
-            color: AppColors.primaryLight,
+            color: softBlue,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(
+              color: primaryBlue.withValues(alpha: 0.2),
+              style: BorderStyle.solid,
+            ),
           ),
-          child: const Column(
+          child: Column(
             children: [
-              Icon(
-                Icons.cloud_upload_outlined,
-                size: 36,
-                color: AppColors.primary,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.cloud_upload_rounded,
+                  size: 28,
+                  color: primaryBlue,
+                ),
               ),
-              SizedBox(height: 8),
-              Text(
-                'Upload verification documents',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              const SizedBox(height: 12),
+              const Text(
+                'อัปโหลดเอกสารยืนยันตัวตนและใบรับรอง',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: textDark,
+                ),
               ),
-              SizedBox(height: 4),
-              Text(
-                'Identity document and certificates (if available)',
+              const SizedBox(height: 4),
+              const Text(
+                'บัตรประชาชน / ใบประกอบวิชาชีพ (ถ้ามี)',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Document upload will be enabled later',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.primary,
+                  color: textMuted,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFF3DF),
+            color: const Color(0xFFFFF8E1),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFFFE082)),
           ),
           child: const Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
-                Icons.info_outline,
-                color: Color(0xFF9A641C),
+                Icons.info_rounded,
+                color: Color(0xFFF57F17),
+                size: 18,
               ),
-              SizedBox(width: 10),
+              SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Your technician account will remain pending '
-                  'until an administrator reviews and approves '
-                  'your application.',
-                  style: TextStyle(fontSize: 12),
+                  'บัญชีช่างของคุณจะอยู่ในสถานะ "รอการตรวจสอบ" เพื่อความปลอดภัยของผู้ใช้งานทุกท่าน',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF5D4037), height: 1.4),
                 ),
               ),
             ],
@@ -408,13 +445,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back),
+        scrolledUnderElevation: 0,
+        leadingWidth: 90,
+        leading: TextButton.icon(
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.goNamed(AppRoute.welcome);
+            }
+          },
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 15,
+            color: textDark,
+          ),
+          label: const Text(
+            'กลับ',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: textDark,
+            ),
+          ),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.only(left: 16),
+            alignment: Alignment.centerLeft,
+          ),
         ),
       ),
       body: SafeArea(
@@ -422,116 +483,117 @@ class _RegisterScreenState extends State<RegisterScreen> {
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
+              constraints: const BoxConstraints(maxWidth: 440),
               child: Form(
                 key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'Create Account',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Join FixMatch and get started today.',
+                      'สร้างบัญชีผู้ใช้ใหม่',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: textDark,
+                        letterSpacing: -0.3,
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'เริ่มต้นใช้งาน FixMatch เพื่อบริการที่ตรงใจคุณ',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: textMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
                     _buildRoleSelector(),
                     const SizedBox(height: 28),
 
-                    _buildSectionTitle('Personal Information'),
+                    _buildSectionTitle('ข้อมูลส่วนตัว'),
                     _buildTextField(
-                      label: 'Full Name',
-                      hint: 'Enter your full name',
+                      label: 'ชื่อ - นามสกุล',
+                      hint: 'กรอกชื่อและนามสกุลของคุณ',
                       controller: _nameController,
-                      icon: Icons.person_outline,
                       validator: _requiredValidator,
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
-                      label: 'Email Address',
-                      hint: 'Enter your email',
+                      label: 'อีเมล',
+                      hint: 'you@example.com',
                       controller: _emailController,
-                      icon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                       validator: _emailValidator,
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
-                      label: 'Phone Number',
-                      hint: 'Enter your phone number',
+                      label: 'เบอร์โทรศัพท์',
+                      hint: 'เช่น 0812345678',
                       controller: _phoneController,
-                      icon: Icons.phone_outlined,
                       keyboardType: TextInputType.phone,
                       validator: _requiredValidator,
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
-                      label: 'Password',
-                      hint: 'At least 8 characters',
+                      label: 'รหัสผ่าน',
+                      hint: 'อย่างน้อย 8 ตัวอักษร',
                       controller: _passwordController,
-                      icon: Icons.lock_outline,
                       obscureText: _obscurePassword,
                       validator: _passwordValidator,
                       suffixIcon: IconButton(
                         onPressed: () {
                           setState(() {
-                            _obscurePassword =
-                                !_obscurePassword;
+                            _obscurePassword = !_obscurePassword;
                           });
                         },
                         icon: Icon(
                           _obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          color: const Color(0xFF94A3B8),
+                          size: 20,
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
-                      label: 'Confirm Password',
-                      hint: 'Enter your password again',
+                      label: 'ยืนยันรหัสผ่าน',
+                      hint: 'กรอกรหัสผ่านอีกครั้ง',
                       controller: _confirmPasswordController,
-                      icon: Icons.lock_outline,
                       obscureText: _obscureConfirmPassword,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please confirm your password';
+                          return 'กรุณายืนยันรหัสผ่าน';
                         }
                         if (value != _passwordController.text) {
-                          return 'Passwords do not match';
+                          return 'รหัสผ่านไม่ตรงกัน';
                         }
                         return null;
                       },
                       suffixIcon: IconButton(
                         onPressed: () {
                           setState(() {
-                            _obscureConfirmPassword =
-                                !_obscureConfirmPassword;
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
                           });
                         },
                         icon: Icon(
                           _obscureConfirmPassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          color: const Color(0xFF94A3B8),
+                          size: 20,
                         ),
                       ),
                     ),
 
                     if (_accountType == AccountType.technician) ...[
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 28),
                       _buildTechnicianFields(),
                     ],
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     CheckboxListTile(
                       value: _acceptedTerms,
                       onChanged: (value) {
@@ -539,45 +601,133 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           _acceptedTerms = value ?? false;
                         });
                       },
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity:
-                          ListTileControlAffinity.leading,
-                      title: const Text(
-                        'I agree to the Terms & Conditions and Privacy Policy',
-                        style: TextStyle(fontSize: 12),
+                      activeColor: primaryBlue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _handleRegister,
-                        child: Text(
-                          _accountType == AccountType.customer
-                              ? 'Create Account'
-                              : 'Submit Application',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: const Text(
+                        'ฉันยอมรับเงื่อนไขการใช้งานและนโยบายความเป็นส่วนตัว',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: textDark,
                         ),
                       ),
                     ),
                     const SizedBox(height: 20),
+
+                    // ปุ่มกดสร้างบัญชีโทนฟ้า Gradient
+                    SizedBox(
+                      height: 50,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF388BFF), Color(0xFF1E67FF)],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryBlue.withValues(alpha: 0.35),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: _handleRegister,
+                          child: Text(
+                            _accountType == AccountType.customer
+                                ? 'สร้างบัญชีผู้ใช้'
+                                : 'ส่งใบสมัครช่าง',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
                     Center(
-                      child: Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          const Text(
-                            'Already have an account? ',
-                            style: TextStyle(fontSize: 13),
+                      child: RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          text: 'มีบัญชีผู้ใช้อยู่แล้ว? ',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: textMuted,
                           ),
-                          TextButton(
-                            onPressed: () => context.pop(),
-                            child: const Text('Login'),
+                          children: [
+                            TextSpan(
+                              text: 'เข้าสู่ระบบ',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: textDark,
+                                decoration: TextDecoration.underline,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  if (context.canPop()) {
+                                    context.pop();
+                                  } else {
+                                    context.goNamed(AppRoute.loginEmail);
+                                  }
+                                },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // ลิงก์ติดต่อความช่วยเหลือด้านล่าง
+                    Center(
+                      child: InkWell(
+                        onTap: () {},
+                        borderRadius: BorderRadius.circular(8),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.help_outline_rounded,
+                                size: 16,
+                                color: textDark,
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                'ต้องการความช่วยเหลือ? ',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: textDark,
+                                ),
+                              ),
+                              Text(
+                                'ติดต่อเรา',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: textDark,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ],
