@@ -1,30 +1,45 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:fixmatch/main.dart';
+import 'package:fixmatch/app/app.dart';
+import 'package:fixmatch/features/auth/presentation/screens/login_email_screen.dart';
+import 'package:fixmatch/features/auth/presentation/screens/login_password_screen.dart';
+import 'package:fixmatch/features/auth/presentation/screens/technician_application_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('FixMatch app opens the welcome screen', (tester) async {
+    await tester.pumpWidget(const FixMatchApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('บริการซ่อมบ้าน เริ่มต้นได้ที่ FixMatch'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  test('login email validation rejects invalid email', () {
+    expect(validateLoginEmail('invalid-email'), 'รูปแบบอีเมลไม่ถูกต้อง');
+  });
+
+  test('login password validation rejects short password', () {
+    expect(validateLoginPassword('123'), 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
+  });
+
+  testWidgets('technician form allows selecting multiple service categories',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: TechnicianApplicationScreen(email: 'tech@example.com')),
+    );
+
+    final airConditioningChipFinder = find.widgetWithText(FilterChip, 'Air Conditioning');
+    final electricalChipFinder = find.widgetWithText(FilterChip, 'Electrical');
+
+    await tester.scrollUntilVisible(airConditioningChipFinder, 100);
+    await tester.tap(airConditioningChipFinder);
+    await tester.scrollUntilVisible(electricalChipFinder, 100);
+    await tester.tap(electricalChipFinder);
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    final airConditioningChip = tester.widget<FilterChip>(airConditioningChipFinder);
+    final electricalChip = tester.widget<FilterChip>(electricalChipFinder);
+
+    expect(airConditioningChip.selected, isTrue);
+    expect(electricalChip.selected, isTrue);
   });
 }
