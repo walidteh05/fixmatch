@@ -4,12 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/router/app_routes.dart';
-import '../../../../app/theme/app_colors.dart';
-import '../../../../app/theme/app_text_styles.dart';
 import '../../application/auth_providers.dart';
 import '../../domain/account_type.dart';
-import '../widgets/auth_primary_button.dart';
-import '../widgets/auth_text_field.dart';
 
 class CustomerProfileScreen extends ConsumerStatefulWidget {
   const CustomerProfileScreen({
@@ -22,7 +18,8 @@ class CustomerProfileScreen extends ConsumerStatefulWidget {
   final AccountType accountType;
 
   @override
-  ConsumerState<CustomerProfileScreen> createState() => _CustomerProfileScreenState();
+  ConsumerState<CustomerProfileScreen> createState() =>
+      _CustomerProfileScreenState();
 }
 
 class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
@@ -37,10 +34,26 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   bool _obscureConfirmPassword = true;
   bool _isSubmitting = false;
 
+  static const primaryBlue = Color(0xFF2979FF);
+  static const softBlue = Color(0xFFF4F8FD);
+  static const textDark = Color(0xFF1E242B);
+  static const textMuted = Color(0xFF6C7A89);
+  static const borderColor = Color(0xFFE2E8F0);
+
   @override
   void initState() {
     super.initState();
     _emailController.text = widget.email;
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _nameController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 
   String? _requiredValidator(String? value) {
@@ -89,7 +102,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       if (message.contains('user already registered') ||
           message.contains('already registered') ||
           message.contains('already exists') ||
-          message.contains('email') && message.contains('used')) {
+          (message.contains('email') && message.contains('used'))) {
         return 'อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่นหรือเข้าสู่ระบบ';
       }
 
@@ -113,13 +126,9 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   }
 
   Future<void> _submitCustomerRegistration() async {
-    if (_isSubmitting) {
-      return;
-    }
+    if (_isSubmitting) return;
 
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     if (!_acceptTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -147,9 +156,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       final hasSession = response.session != null;
       final user = response.user;
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       if (hasSession && user != null) {
         context.goNamed(AppRoute.customerHome);
@@ -171,20 +178,12 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
         ),
       );
     } on AuthException catch (error) {
-      if (!mounted) {
-        return;
-      }
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_friendlyAuthMessage(error)),
-        ),
+        SnackBar(content: Text(_friendlyAuthMessage(error))),
       );
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
-
+      if (!mounted) return;
       debugPrint('Customer sign up failed: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -198,72 +197,183 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
     }
   }
 
+  Widget _buildField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
+    bool obscureText = false,
+    bool readOnly = false,
+    Widget? suffixIcon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: textDark,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          readOnly: readOnly,
+          validator: validator,
+          style: TextStyle(
+            fontSize: 15,
+            color: readOnly ? textMuted : textDark,
+            fontWeight: readOnly ? FontWeight.w500 : FontWeight.normal,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(
+              color: Color(0xFF94A3B8),
+              fontSize: 14,
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            filled: true,
+            fillColor: readOnly ? softBlue : Colors.white,
+            suffixIcon: suffixIcon,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: readOnly
+                    ? primaryBlue.withValues(alpha: 0.15)
+                    : borderColor,
+                width: 1.2,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: primaryBlue, width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.2),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back),
+        scrolledUnderElevation: 0,
+        leadingWidth: 90,
+        leading: TextButton.icon(
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.goNamed(AppRoute.chooseAccountType, queryParameters: {
+                'email': widget.email,
+              });
+            }
+          },
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 15,
+            color: textDark,
+          ),
+          label: const Text(
+            'กลับ',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: textDark,
+            ),
+          ),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.only(left: 16),
+            alignment: Alignment.centerLeft,
+          ),
         ),
       ),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 500),
+              constraints: const BoxConstraints(maxWidth: 440),
               child: Form(
                 key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'ข้อมูลส่วนตัว',
-                      style: AppTextStyles.headingLarge,
-                    ),
                     const SizedBox(height: 8),
-                    Text(
-                      'กรอกข้อมูลเพื่อสร้างบัญชีลูกค้า',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
+
+                    // หัวข้อหลัก
+                    const Text(
+                      'ข้อมูลส่วนตัวลูกค้า',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: textDark,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'กรอกข้อมูลเพื่อสร้างบัญชีและเริ่มต้นใช้งาน FixMatch',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: textMuted,
                       ),
                     ),
                     const SizedBox(height: 28),
-                    AuthTextField(
+
+                    _buildField(
                       label: 'ชื่อ-นามสกุล',
-                      hintText: 'กรอกชื่อของคุณ',
+                      hint: 'กรอกชื่อและนามสกุลของคุณ',
                       controller: _nameController,
-                      prefixIcon: Icons.person_outline,
                       validator: _requiredValidator,
                     ),
                     const SizedBox(height: 16),
-                    AuthTextField(
+
+                    _buildField(
                       label: 'อีเมล',
-                      hintText: 'you@example.com',
+                      hint: 'you@example.com',
                       controller: _emailController,
-                      prefixIcon: Icons.email_outlined,
                       readOnly: true,
                       validator: _emailValidator,
+                      suffixIcon: const Icon(
+                        Icons.lock_outline_rounded,
+                        size: 18,
+                        color: textMuted,
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    AuthTextField(
+
+                    _buildField(
                       label: 'เบอร์โทรศัพท์',
-                      hintText: '0812345678',
+                      hint: 'เช่น 0812345678',
                       controller: _phoneController,
-                      prefixIcon: Icons.phone_outlined,
                       keyboardType: TextInputType.phone,
                       validator: _phoneValidator,
                     ),
                     const SizedBox(height: 16),
-                    AuthTextField(
+
+                    _buildField(
                       label: 'รหัสผ่าน',
-                      hintText: 'อย่างน้อย 8 ตัวอักษร',
+                      hint: 'อย่างน้อย 8 ตัวอักษร',
                       controller: _passwordController,
-                      prefixIcon: Icons.lock_outline,
                       obscureText: _obscurePassword,
                       validator: _passwordValidator,
                       suffixIcon: IconButton(
@@ -276,15 +386,17 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                           _obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          color: const Color(0xFF94A3B8),
+                          size: 20,
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    AuthTextField(
+
+                    _buildField(
                       label: 'ยืนยันรหัสผ่าน',
-                      hintText: 'กรอกรหัสผ่านอีกครั้ง',
+                      hint: 'กรอกรหัสผ่านอีกครั้ง',
                       controller: _confirmPasswordController,
-                      prefixIcon: Icons.lock_outline,
                       obscureText: _obscureConfirmPassword,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -298,34 +410,136 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                       suffixIcon: IconButton(
                         onPressed: () {
                           setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                            _obscureConfirmPassword =
+                                !_obscureConfirmPassword;
                           });
                         },
                         icon: Icon(
                           _obscureConfirmPassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          color: const Color(0xFF94A3B8),
+                          size: 20,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
+
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
                       value: _acceptTerms,
+                      activeColor: primaryBlue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
                       onChanged: (value) {
                         setState(() {
                           _acceptTerms = value ?? false;
                         });
                       },
-                      title: Text(
+                      title: const Text(
                         'ฉันยอมรับข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัว',
-                        style: AppTextStyles.bodySmall,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: textDark,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    AuthPrimaryButton(
-                      text: _isSubmitting ? 'กำลังสมัคร...' : 'สร้างบัญชี',
-                      onPressed: _isSubmitting ? null : _submitCustomerRegistration,
+
+                    // ปุ่มสร้างบัญชี Gradient
+                    SizedBox(
+                      height: 50,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF388BFF),
+                              Color(0xFF1E67FF),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryBlue.withValues(alpha: 0.35),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: _isSubmitting
+                              ? null
+                              : _submitCustomerRegistration,
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  'สร้างบัญชีผู้ใช้',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // ส่วนท้าย: "ต้องการความช่วยเหลือ? ติดต่อเรา"
+                    Center(
+                      child: InkWell(
+                        onTap: () {},
+                        borderRadius: BorderRadius.circular(8),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.help_outline_rounded,
+                                size: 16,
+                                color: textDark,
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                'ต้องการความช่วยเหลือ? ',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: textDark,
+                                ),
+                              ),
+                              Text(
+                                'ติดต่อเรา',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: textDark,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -335,15 +549,5 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _nameController.dispose();
-    _phoneController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
   }
 }
