@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -7,6 +8,7 @@ import '../../../../app/theme/app_text_styles.dart';
 import '../../domain/account_type.dart';
 import '../widgets/auth_primary_button.dart';
 import '../widgets/auth_text_field.dart';
+import '../widgets/document_upload_field.dart';
 
 class TechnicianApplicationScreen extends StatefulWidget {
   const TechnicianApplicationScreen({
@@ -46,6 +48,14 @@ class _TechnicianApplicationScreenState
   ];
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
+  List<PlatformFile> _identityDocuments = [];
+  List<PlatformFile> _certificateDocuments = [];
+  List<PlatformFile> _portfolioImages = [];
+
+  bool _isPickingIdentity = false;
+  bool _isPickingCertificate = false;
+  bool _isPickingPortfolio = false;
 
   @override
   void initState() {
@@ -90,6 +100,99 @@ class _TechnicianApplicationScreenState
       return 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร';
     }
     return null;
+  }
+
+  Future<void> _pickFiles({
+    required List<PlatformFile> currentFiles,
+    required ValueChanged<List<PlatformFile>> onUpdate,
+    required bool allowMultiple,
+    required List<String> allowedExtensions,
+    required bool isLoading,
+    required String errorMessage,
+    required void Function(bool) setLoading,
+  }) async {
+    if (isLoading) return;
+
+    setLoading(true);
+
+    try {
+      final List<PlatformFile> pickedFiles;
+
+      if (allowMultiple) {
+        final result = await FilePicker.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: allowedExtensions,
+        );
+        pickedFiles = result;
+      } else {
+        final result = await FilePicker.pickFile(
+          type: FileType.custom,
+          allowedExtensions: allowedExtensions,
+        );
+        pickedFiles = result == null ? const [] : [result];
+      }
+
+      if (!mounted) return;
+
+      if (pickedFiles.isEmpty) {
+        return;
+      }
+
+      final validFiles = <PlatformFile>[];
+      final invalidFiles = <String>[];
+
+      for (final file in pickedFiles) {
+        final extension = (file.extension ?? '').toLowerCase();
+        final fileSizeBytes = file.lengthSync() ?? 0;
+        final isAllowed = allowedExtensions.contains(extension);
+        final isWithinLimit = fileSizeBytes <= 10 * 1024 * 1024;
+
+        if (!isAllowed) {
+          invalidFiles.add('${file.name} ไม่ใช่ไฟล์ที่รองรับ');
+          continue;
+        }
+
+        if (!isWithinLimit) {
+          invalidFiles.add('${file.name} ขนาดเกิน 10 MB');
+          continue;
+        }
+
+        validFiles.add(file);
+      }
+
+      if (invalidFiles.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(invalidFiles.join('\n')),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+
+      if (validFiles.isEmpty) {
+        return;
+      }
+
+      final nextFiles = allowMultiple
+          ? [...currentFiles, ...validFiles]
+          : validFiles.take(1).toList();
+
+      onUpdate(nextFiles);
+    } catch (e, st) {
+      debugPrint('FilePicker error: $e');
+      debugPrintStack(stackTrace: st);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setLoading(false);
+      }
+    }
   }
 
   @override
@@ -293,11 +396,137 @@ class _TechnicianApplicationScreenState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _uploadPlaceholder('Identity verification document', Icons.badge_outlined),
-                          const SizedBox(height: 12),
-                          _uploadPlaceholder('Professional certificate', Icons.school_outlined),
-                          const SizedBox(height: 12),
-                          _uploadPlaceholder('Portfolio image', Icons.image_outlined),
+                          DocumentUploadField(
+                            label: 'Identity Verification Document',
+                            required: true,
+                            allowMultiple: false,
+                            files: _identityDocuments,
+                            isLoading: _isPickingIdentity,
+                            helperText: 'รองรับ PDF, JPG, PNG เท่านั้น',
+                            onPickFiles: () async {
+                              await _pickFiles(
+                                currentFiles: _identityDocuments,
+                                onUpdate: (files) {
+                                  setState(() => _identityDocuments = files);
+                                },
+                                allowMultiple: false,
+                                allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+                                isLoading: _isPickingIdentity,
+                                errorMessage: 'ไม่สามารถเลือกไฟล์เอกสารยืนยันตัวตนได้',
+                                setLoading: (loading) {
+                                  setState(() => _isPickingIdentity = loading);
+                                },
+                              );
+                            },
+                            onReplaceFile: () async {
+                              await _pickFiles(
+                                currentFiles: _identityDocuments,
+                                onUpdate: (files) {
+                                  setState(() => _identityDocuments = files);
+                                },
+                                allowMultiple: false,
+                                allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+                                isLoading: _isPickingIdentity,
+                                errorMessage: 'ไม่สามารถเลือกไฟล์เอกสารยืนยันตัวตนได้',
+                                setLoading: (loading) {
+                                  setState(() => _isPickingIdentity = loading);
+                                },
+                              );
+                            },
+                            onRemoveFile: (index) {
+                              setState(() {
+                                _identityDocuments.removeAt(index);
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 18),
+                          DocumentUploadField(
+                            label: 'Professional Certificate',
+                            required: false,
+                            allowMultiple: false,
+                            files: _certificateDocuments,
+                            isLoading: _isPickingCertificate,
+                            helperText: 'รองรับ PDF, JPG, PNG ไม่บังคับกรอก',
+                            onPickFiles: () async {
+                              await _pickFiles(
+                                currentFiles: _certificateDocuments,
+                                onUpdate: (files) {
+                                  setState(() => _certificateDocuments = files);
+                                },
+                                allowMultiple: false,
+                                allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+                                isLoading: _isPickingCertificate,
+                                errorMessage: 'ไม่สามารถเลือกไฟล์ใบประกอบวิชาชีพได้',
+                                setLoading: (loading) {
+                                  setState(() => _isPickingCertificate = loading);
+                                },
+                              );
+                            },
+                            onReplaceFile: () async {
+                              await _pickFiles(
+                                currentFiles: _certificateDocuments,
+                                onUpdate: (files) {
+                                  setState(() => _certificateDocuments = files);
+                                },
+                                allowMultiple: false,
+                                allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+                                isLoading: _isPickingCertificate,
+                                errorMessage: 'ไม่สามารถเลือกไฟล์ใบประกอบวิชาชีพได้',
+                                setLoading: (loading) {
+                                  setState(() => _isPickingCertificate = loading);
+                                },
+                              );
+                            },
+                            onRemoveFile: (index) {
+                              setState(() {
+                                _certificateDocuments.removeAt(index);
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 18),
+                          DocumentUploadField(
+                            label: 'Portfolio / Work Samples',
+                            required: false,
+                            allowMultiple: true,
+                            files: _portfolioImages,
+                            isLoading: _isPickingPortfolio,
+                            helperText: 'เลือกรูปภาพ JPG, PNG ได้หลายภาพ',
+                            onPickFiles: () async {
+                              await _pickFiles(
+                                currentFiles: _portfolioImages,
+                                onUpdate: (files) {
+                                  setState(() => _portfolioImages = files);
+                                },
+                                allowMultiple: true,
+                                allowedExtensions: const ['jpg', 'jpeg', 'png'],
+                                isLoading: _isPickingPortfolio,
+                                errorMessage: 'ไม่สามารถเลือกรูปภาพผลงานได้',
+                                setLoading: (loading) {
+                                  setState(() => _isPickingPortfolio = loading);
+                                },
+                              );
+                            },
+                            onReplaceFile: () async {
+                              await _pickFiles(
+                                currentFiles: _portfolioImages,
+                                onUpdate: (files) {
+                                  setState(() => _portfolioImages = files);
+                                },
+                                allowMultiple: true,
+                                allowedExtensions: const ['jpg', 'jpeg', 'png'],
+                                isLoading: _isPickingPortfolio,
+                                errorMessage: 'ไม่สามารถเลือกรูปภาพผลงานได้',
+                                setLoading: (loading) {
+                                  setState(() => _isPickingPortfolio = loading);
+                                },
+                              );
+                            },
+                            onRemoveFile: (index) {
+                              setState(() {
+                                _portfolioImages.removeAt(index);
+                              });
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -343,6 +572,14 @@ class _TechnicianApplicationScreenState
                           );
                           return;
                         }
+                        if (_identityDocuments.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('กรุณาเลือกเอกสารยืนยันตัวตนอย่างน้อย 1 ไฟล์'),
+                            ),
+                          );
+                          return;
+                        }
                         context.goNamed(AppRoute.pendingApproval);
                       },
                     ),
@@ -352,39 +589,6 @@ class _TechnicianApplicationScreenState
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _uploadPlaceholder(String title, IconData icon) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-      decoration: BoxDecoration(
-        color: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: AppColors.primary,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title,
-              style: AppTextStyles.bodyMedium,
-            ),
-          ),
-          Text(
-            'Placeholder',
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.primary,
-            ),
-          ),
-        ],
       ),
     );
   }

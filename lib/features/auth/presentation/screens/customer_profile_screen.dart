@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../application/auth_providers.dart';
 import '../../domain/account_type.dart';
 import '../widgets/auth_primary_button.dart';
 import '../widgets/auth_text_field.dart';
 
-class CustomerProfileScreen extends StatefulWidget {
+class CustomerProfileScreen extends ConsumerStatefulWidget {
   const CustomerProfileScreen({
     super.key,
     required this.email,
@@ -19,10 +22,10 @@ class CustomerProfileScreen extends StatefulWidget {
   final AccountType accountType;
 
   @override
-  State<CustomerProfileScreen> createState() => _CustomerProfileScreenState();
+  ConsumerState<CustomerProfileScreen> createState() => _CustomerProfileScreenState();
 }
 
-class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
+class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _nameController = TextEditingController();
@@ -32,6 +35,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   bool _acceptTerms = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -76,6 +80,122 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
       return 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร';
     }
     return null;
+  }
+
+  String _friendlyAuthMessage(Object error) {
+    if (error is AuthException) {
+      final message = error.message.toLowerCase();
+
+      if (message.contains('user already registered') ||
+          message.contains('already registered') ||
+          message.contains('already exists') ||
+          message.contains('email') && message.contains('used')) {
+        return 'อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่นหรือเข้าสู่ระบบ';
+      }
+
+      if (message.contains('invalid login credentials') ||
+          message.contains('invalid credentials')) {
+        return 'ข้อมูลเข้าสู่ระบบไม่ถูกต้อง';
+      }
+
+      if (message.contains('network')) {
+        return 'เกิดปัญหาเครือข่าย กรุณาลองใหม่อีกครั้ง';
+      }
+
+      if (message.contains('password')) {
+        return 'รหัสผ่านไม่ผ่านเงื่อนไขความปลอดภัย';
+      }
+
+      return error.message;
+    }
+
+    return 'เกิดข้อผิดพลาดในการสมัครสมาชิก กรุณาลองใหม่อีกครั้ง';
+  }
+
+  Future<void> _submitCustomerRegistration() async {
+    if (_isSubmitting) {
+      return;
+    }
+
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (!_acceptTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('กรุณายอมรับข้อกำหนดและนโยบายความเป็นส่วนตัว'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final authRepository = ref.read(authRepositoryProvider);
+      final response = await authRepository.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        metadata: {
+          'full_name': _nameController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'role': 'customer',
+        },
+      );
+
+      final hasSession = response.session != null;
+      final user = response.user;
+
+      if (!mounted) {
+        return;
+      }
+
+      if (hasSession && user != null) {
+        context.goNamed(AppRoute.customerHome);
+        return;
+      }
+
+      if (user != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('สมัครสมาชิกสำเร็จ กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ'),
+          ),
+        );
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง'),
+        ),
+      );
+    } on AuthException catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_friendlyAuthMessage(error)),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      debugPrint('Customer sign up failed: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('เกิดข้อผิดพลาดในการสมัครสมาชิก กรุณาลองใหม่อีกครั้ง'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   @override
@@ -204,21 +324,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     ),
                     const SizedBox(height: 24),
                     AuthPrimaryButton(
-                      text: 'สร้างบัญชี',
-                      onPressed: () {
-                        if (!_formKey.currentState!.validate()) {
-                          return;
-                        }
-                        if (!_acceptTerms) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('กรุณายอมรับข้อกำหนดและนโยบายความเป็นส่วนตัว'),
-                            ),
-                          );
-                          return;
-                        }
-                        context.goNamed(AppRoute.customerHome);
-                      },
+                      text: _isSubmitting ? 'กำลังสมัคร...' : 'สร้างบัญชี',
+                      onPressed: _isSubmitting ? null : _submitCustomerRegistration,
                     ),
                   ],
                 ),
