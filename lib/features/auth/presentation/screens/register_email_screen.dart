@@ -1,10 +1,49 @@
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/router/app_routes.dart';
+
+class EmailAvailabilityResult {
+  const EmailAvailabilityResult({
+    required this.exists,
+    this.accountType,
+    this.technicianStatus,
+  });
+
+  final bool exists;
+  final String? accountType;
+  final String? technicianStatus;
+
+  factory EmailAvailabilityResult.fromJson(Map<String, dynamic> json) {
+    final rawAccountType = (json['account_type'] ?? json['accountType'])
+        ?.toString();
+    final normalizedAccountType = rawAccountType?.trim();
+
+    final rawTechnicianStatus =
+        (json['technician_status'] ?? json['technicianStatus'])?.toString();
+    final normalizedTechnicianStatus = rawTechnicianStatus?.trim();
+
+    return EmailAvailabilityResult(
+      exists: json['exists'] == true,
+      accountType:
+          normalizedAccountType != null && normalizedAccountType.isNotEmpty
+          ? normalizedAccountType
+          : null,
+      technicianStatus:
+          normalizedTechnicianStatus != null &&
+              normalizedTechnicianStatus.isNotEmpty
+          ? normalizedTechnicianStatus
+          : null,
+    );
+  }
+
+  bool get isPendingTechnician =>
+      exists &&
+      accountType?.toLowerCase() == 'technician' &&
+      technicianStatus?.toLowerCase() == 'pending';
+}
 
 class RegisterEmailScreen extends StatefulWidget {
   const RegisterEmailScreen({super.key});
@@ -38,8 +77,7 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
       return 'กรุณากรอกอีเมล';
     }
 
-    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-        .hasMatch(trimmed)) {
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(trimmed)) {
       return 'รูปแบบอีเมลไม่ถูกต้อง';
     }
 
@@ -63,39 +101,41 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
     });
 
     try {
-      final response =
-          await Supabase.instance.client.functions.invoke(
+      final response = await Supabase.instance.client.functions.invoke(
         'check-email',
-        body: {
-          'email': email,
-        },
+        body: {'email': email},
       );
 
       final data = response.data;
 
-      if (data is! Map || data['exists'] is! bool) {
+      if (data is! Map) {
         throw Exception('Invalid response from check-email');
       }
 
-      final emailExists = data['exists'] as bool;
+      final result = EmailAvailabilityResult.fromJson(
+        Map<String, dynamic>.from(data),
+      );
 
       if (!mounted) return;
 
-      if (emailExists) {
-        setState(() {
-          _emailAvailabilityError = 'อีเมลนี้ถูกใช้งานแล้ว';
-        });
-
-        _formKey.currentState!.validate();
+      if (!result.exists) {
+        context.pushNamed(
+          AppRoute.welcomeNewMember,
+          queryParameters: {'email': email},
+        );
         return;
       }
 
-      context.pushNamed(
-        AppRoute.welcomeNewMember,
-        queryParameters: {
-          'email': email,
-        },
-      );
+      if (result.isPendingTechnician) {
+        context.goNamed(AppRoute.pendingApproval);
+        return;
+      }
+
+      setState(() {
+        _emailAvailabilityError = 'อีเมลนี้ถูกใช้งานแล้ว';
+      });
+
+      _formKey.currentState!.validate();
     } catch (e) {
       if (!mounted) return;
 
@@ -176,10 +216,7 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: const LinearGradient(
-                                colors: [
-                                  Color(0xFF82D2FF),
-                                  Color(0xFF2979FF),
-                                ],
+                                colors: [Color(0xFF82D2FF), Color(0xFF2979FF)],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
@@ -244,18 +281,14 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           enabled: !_isCheckingEmail,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: textDark,
-                          ),
+                          style: const TextStyle(fontSize: 15, color: textDark),
                           decoration: InputDecoration(
                             hintText: 'you@example.com',
                             hintStyle: const TextStyle(
                               color: Color(0xFF94A3B8),
                               fontSize: 15,
                             ),
-                            contentPadding:
-                                const EdgeInsets.symmetric(
+                            contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 14,
                             ),
@@ -310,10 +343,7 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [
-                                  Color(0xFF388BFF),
-                                  Color(0xFF1E67FF),
-                                ],
+                                colors: [Color(0xFF388BFF), Color(0xFF1E67FF)],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ),
@@ -329,15 +359,13 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.transparent,
-                                disabledBackgroundColor:
-                                    Colors.transparent,
+                                disabledBackgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              onPressed:
-                                  _isCheckingEmail ? null : _onContinue,
+                              onPressed: _isCheckingEmail ? null : _onContinue,
                               child: _isCheckingEmail
                                   ? const SizedBox(
                                       width: 22,
@@ -385,9 +413,7 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
                                       if (context.canPop()) {
                                         context.pop();
                                       } else {
-                                        context.goNamed(
-                                          AppRoute.loginEmail,
-                                        );
+                                        context.goNamed(AppRoute.loginEmail);
                                       }
                                     },
                                 ),
@@ -400,10 +426,7 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
 
                         // ส่วนท้าย: ต้องการความช่วยเหลือ
                         Padding(
-                          padding: const EdgeInsets.only(
-                            top: 24,
-                            bottom: 16,
-                          ),
+                          padding: const EdgeInsets.only(top: 24, bottom: 16),
                           child: Center(
                             child: InkWell(
                               onTap: () {},

@@ -91,11 +91,12 @@ Deno.serve(async (req) => {
     },
   })
 
-  const { data, error } = await supabase.rpc('email_exists', {
-    p_email: email,
-  })
+  const {
+    data: usersData,
+    error: usersError,
+  } = await supabase.auth.admin.listUsers()
 
-  if (error) {
+  if (usersError) {
     return new Response(
       JSON.stringify({
         error: 'Unable to verify email availability',
@@ -110,9 +111,84 @@ Deno.serve(async (req) => {
     )
   }
 
+  const matchingUser = usersData?.users.find((user) => {
+    return (user.email ?? '').trim().toLowerCase() === email
+  })
+
+  if (!matchingUser) {
+    return new Response(
+      JSON.stringify({
+        exists: false,
+      }),
+      {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', matchingUser.id)
+    .maybeSingle()
+
+  if (profileError && profileError.code !== 'PGRST116') {
+    return new Response(
+      JSON.stringify({
+        error: 'Unable to verify email availability',
+      }),
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+  }
+
+  const accountType =
+    typeof profile?.role === 'string' ? profile.role.trim().toLowerCase() : null
+
+  let technicianStatus: string | null = null
+
+  if (accountType === 'technician') {
+    const { data: technicianProfile, error: technicianError } = await supabase
+      .from('technician_profiles')
+      .select('status')
+      .eq('profile_id', matchingUser.id)
+      .maybeSingle()
+
+    if (technicianError && technicianError.code !== 'PGRST116') {
+      return new Response(
+        JSON.stringify({
+          error: 'Unable to verify email availability',
+        }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+    }
+
+    technicianStatus =
+      typeof technicianProfile?.status === 'string'
+        ? technicianProfile.status.trim().toLowerCase()
+        : null
+  }
+
   return new Response(
     JSON.stringify({
-      exists: Boolean(data),
+      exists: true,
+      accountType,
+      technicianStatus,
     }),
     {
       status: 200,
