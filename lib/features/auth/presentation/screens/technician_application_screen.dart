@@ -305,6 +305,8 @@ class _TechnicianApplicationScreenState
         return false;
       }
 
+      ref.invalidate(authStateChangesProvider);
+
       if (isResume) {
         context.goNamed(
           AppRoute.loginPassword,
@@ -316,14 +318,16 @@ class _TechnicianApplicationScreenState
       return true;
     } catch (error, stackTrace) {
       debugPrint(
-        'Explicit sign out before Technician registration failed: $error',
+        'Explicit sign out before Technician registration failed: '
+        '${error.runtimeType}',
       );
       debugPrintStack(stackTrace: stackTrace);
       if (mounted) {
+        final detail = error is AuthException
+            ? error.message
+            : error.toString();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('ไม่สามารถออกจากระบบบัญชีเดิมได้ กรุณาลองอีกครั้ง'),
-          ),
+          SnackBar(content: Text('ออกจากระบบบัญชีเดิมไม่สำเร็จ: $detail')),
         );
       }
       return false;
@@ -369,12 +373,23 @@ class _TechnicianApplicationScreenState
     });
 
     try {
+      final session = await Supabase.instance.client.auth.getSession();
+      debugPrint(
+        'Loading technician service categories: '
+        'authSessionAvailable=${session != null}',
+      );
+
       final categories = await ref
           .read(technicianRegistrationRepositoryProvider)
           .loadActiveServiceCategories();
 
       if (categories.isEmpty && !widget.resume) {
-        throw StateError('No active service categories were found.');
+        if (!mounted) return;
+        setState(() {
+          _serviceCategories = categories;
+          _categoryLoadError = 'ไม่พบหมวดบริการที่เปิดใช้งานในขณะนี้';
+        });
+        return;
       }
 
       if (!mounted) return;
@@ -385,7 +400,18 @@ class _TechnicianApplicationScreenState
         await _loadResumeData();
       }
     } catch (error, stackTrace) {
-      debugPrint('Loading service categories failed: $error');
+      if (error is PostgrestException) {
+        debugPrint(
+          'Loading service categories failed: '
+          'message=${error.message}, code=${error.code}, '
+          'details=${error.details}, hint=${error.hint}',
+        );
+      } else {
+        debugPrint(
+          'Loading service categories failed: '
+          '${error.runtimeType}: $error',
+        );
+      }
       debugPrintStack(stackTrace: stackTrace);
 
       if (!mounted) return;
@@ -602,23 +628,11 @@ class _TechnicianApplicationScreenState
         }
         user = currentSession.user;
       } else {
-        if (currentSession != null &&
-            (currentSession.user.email ?? '').trim().toLowerCase() != email) {
-          final canContinue = await _prepareRegistrationSession(
-            authRepository,
-            isResume: false,
-          );
-          if (!canContinue || !mounted) return;
-
-          currentSession = authRepository.currentSession;
-          currentUser = authRepository.currentUser;
-        }
-
         if (currentSession != null) {
           user = currentSession.user;
           if ((user.email ?? '').trim().toLowerCase() != email) {
             throw StateError(
-              'Session ปัจจุบันไม่ตรงกับอีเมลที่สมัคร กรุณาลองออกจากระบบอีกครั้ง',
+              'Session เปลี่ยนระหว่างเริ่มสมัคร กรุณากดส่งใบสมัครอีกครั้งเพื่อยืนยันบัญชี',
             );
           }
           if (_createdAuthUserId != null && user.id != _createdAuthUserId) {
@@ -636,6 +650,13 @@ class _TechnicianApplicationScreenState
           if (await authRepository.emailExists(email)) {
             throw StateError(
               'อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ',
+            );
+          }
+
+          if (authRepository.currentSession != null ||
+              authRepository.currentUser != null) {
+            throw StateError(
+              'มี Session เปลี่ยนแปลงก่อนเริ่มสมัคร กรุณาตรวจสอบบัญชีแล้วลองใหม่',
             );
           }
 

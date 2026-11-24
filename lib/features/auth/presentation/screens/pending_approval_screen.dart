@@ -23,6 +23,7 @@ class PendingApprovalScreen extends ConsumerStatefulWidget {
 
 class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
   bool _isAuthorized = false;
+  bool _isLoggingOut = false;
   String? _guardError;
 
   @override
@@ -131,6 +132,36 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
     }
   }
 
+  Future<void> _logoutAndReturnToLogin() async {
+    if (_isLoggingOut) return;
+    setState(() => _isLoggingOut = true);
+
+    final client = Supabase.instance.client;
+    try {
+      await client.auth.signOut();
+
+      if (client.auth.currentSession != null ||
+          client.auth.currentUser != null) {
+        throw StateError('Supabase Auth ยังมี Session หลังออกจากระบบ');
+      }
+
+      ref.invalidate(authStateChangesProvider);
+      if (!mounted) return;
+      context.goNamed(AppRoute.loginEmail);
+    } catch (error, stackTrace) {
+      debugPrint('Pending approval sign out failed: ${error.runtimeType}');
+      debugPrintStack(stackTrace: stackTrace);
+      if (!mounted) return;
+
+      final detail = error is AuthException ? error.message : error.toString();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('ออกจากระบบไม่สำเร็จ: $detail')));
+    } finally {
+      if (mounted) setState(() => _isLoggingOut = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_isAuthorized) {
@@ -235,10 +266,10 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
                   ),
                   const SizedBox(height: 30),
                   AuthPrimaryButton(
-                    text: 'กลับสู่หน้าเข้าสู่ระบบ',
-                    onPressed: () {
-                      context.goNamed(AppRoute.welcome);
-                    },
+                    text: _isLoggingOut
+                        ? 'กำลังออกจากระบบ...'
+                        : 'กลับสู่หน้าเข้าสู่ระบบ',
+                    onPressed: _isLoggingOut ? null : _logoutAndReturnToLogin,
                   ),
                   const SizedBox(height: 12),
                   AuthPrimaryButton(
