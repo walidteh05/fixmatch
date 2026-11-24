@@ -1,17 +1,170 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../application/auth_providers.dart';
+import '../../data/auth_repository.dart';
 import '../../domain/technician_status.dart';
 import '../widgets/auth_primary_button.dart';
 
-class PendingApprovalScreen extends StatelessWidget {
+class PendingApprovalScreen extends ConsumerStatefulWidget {
   const PendingApprovalScreen({super.key});
 
   @override
+  ConsumerState<PendingApprovalScreen> createState() =>
+      _PendingApprovalScreenState();
+}
+
+class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
+  bool _isAuthorized = false;
+  String? _guardError;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_guardPendingApproval());
+    });
+  }
+
+  Future<void> _guardPendingApproval() async {
+    final client = Supabase.instance.client;
+    final session = client.auth.currentSession;
+    if (session == null) {
+      if (mounted) context.goNamed(AppRoute.loginEmail);
+      return;
+    }
+
+    final email = session.user.email ?? '';
+    try {
+      final profile = await client
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+      if (!mounted) return;
+
+      final roleValue = profile?['role'];
+      if (profile == null || roleValue is! String || roleValue.trim().isEmpty) {
+        setState(() {
+          _guardError = 'ไม่พบข้อมูลโปรไฟล์ จึงไม่สามารถยืนยันสถานะใบสมัครได้';
+        });
+        return;
+      }
+
+      final role = roleValue.trim().toLowerCase();
+      if (role == 'customer') {
+        context.goNamed(AppRoute.customerHome);
+        return;
+      }
+      if (role != 'technician') {
+        setState(() {
+          _guardError = 'บัญชีนี้ไม่มีสิทธิ์เข้าถึงสถานะใบสมัครช่าง';
+        });
+        return;
+      }
+
+      final application = await ref
+          .read(technicianRegistrationRepositoryProvider)
+          .loadApplicationSnapshot(profileId: session.user.id);
+      if (!mounted) return;
+
+      if (!application.profileExists ||
+          application.role?.toLowerCase() != 'technician') {
+        setState(() {
+          _guardError = 'ไม่พบข้อมูลบัญชีช่าง จึงไม่สามารถยืนยันสถานะได้';
+        });
+        return;
+      }
+
+      switch (application.status?.trim().toLowerCase()) {
+        case 'pending':
+          if (!application.isComplete) {
+            context.goNamed(
+              AppRoute.technicianApplication,
+              queryParameters: {'email': email, 'resume': 'true'},
+            );
+            return;
+          }
+          setState(() => _isAuthorized = true);
+          return;
+        case 'approved':
+          context.goNamed(AppRoute.technicianHome);
+          return;
+        case 'rejected':
+          context.goNamed(
+            AppRoute.technicianRejected,
+            queryParameters: {
+              'reason': application.rejectedReason?.trim() ?? '',
+            },
+          );
+          return;
+        default:
+          setState(() {
+            _guardError = 'สถานะบัญชีช่างไม่พร้อมแสดง Pending Approval';
+          });
+      }
+    } catch (error, stackTrace) {
+      debugPrint('Pending approval route guard failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (!mounted) return;
+
+      if (isAuthSessionFailure(error)) {
+        context.goNamed(
+          AppRoute.loginPassword,
+          queryParameters: {'email': email, 'sessionExpired': 'true'},
+        );
+        return;
+      }
+
+      setState(() {
+        _guardError =
+            'ไม่สามารถตรวจสอบใบสมัครได้ กรุณาลองเข้าสู่ระบบใหม่อีกครั้ง';
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (!_isAuthorized) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: _guardError == null
+                  ? const CircularProgressIndicator()
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _guardError!,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        AuthPrimaryButton(
+                          text: 'กลับสู่หน้าเข้าสู่ระบบ',
+                          onPressed: () => context.goNamed(AppRoute.loginEmail),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+      );
+    }
+
     const status = TechnicianStatus.pending;
 
     return Scaffold(
@@ -55,7 +208,10 @@ class PendingApprovalScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 28),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primaryLight,
                       borderRadius: BorderRadius.circular(999),

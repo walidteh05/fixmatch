@@ -43,6 +43,8 @@ class EmailAvailabilityResult {
       exists &&
       accountType?.toLowerCase() == 'technician' &&
       technicianStatus?.toLowerCase() == 'pending';
+
+  bool get isTechnician => exists && accountType?.toLowerCase() == 'technician';
 }
 
 class RegisterEmailScreen extends StatefulWidget {
@@ -126,8 +128,11 @@ class _RegisterEmailScreenState extends State<RegisterEmailScreen> {
         return;
       }
 
-      if (result.isPendingTechnician) {
-        context.goNamed(AppRoute.pendingApproval);
+      if (result.isTechnician) {
+        context.goNamed(
+          AppRoute.loginPassword,
+          queryParameters: {'email': email},
+        );
         return;
       }
 

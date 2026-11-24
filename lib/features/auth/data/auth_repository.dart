@@ -1,7 +1,41 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+bool isAuthSessionFailure(Object error) {
+  if (error is AuthSessionMissingException ||
+      error is AuthInvalidJwtException ||
+      error is AuthRetryableFetchException) {
+    return true;
+  }
+
+  if (error is AuthException) {
+    const invalidSessionCodes = {
+      'bad_jwt',
+      'invalid_jwt',
+      'session_expired',
+      'session_missing',
+      'session_not_found',
+      'refresh_token_not_found',
+      'refresh_token_already_used',
+    };
+    return error.statusCode == '401' ||
+        (error.code != null && invalidSessionCodes.contains(error.code));
+  }
+
+  if (error is PostgrestException) {
+    return error.code == '401' || error.code == 'PGRST301';
+  }
+
+  if (error is StorageException) {
+    return error.statusCode == '401';
+  }
+
+  return false;
+}
+
 abstract class AuthRepository {
   User? get currentUser;
+
+  Session? get currentSession;
 
   Stream<AuthState> get authStateChanges;
 
@@ -10,6 +44,8 @@ abstract class AuthRepository {
     required String password,
     required Map<String, dynamic> metadata,
   });
+
+  Future<bool> emailExists(String email);
 
   Future<AuthResponse> signInWithPassword({
     required String email,
@@ -26,6 +62,9 @@ class SupabaseAuthRepository implements AuthRepository {
 
   @override
   User? get currentUser => _client.auth.currentUser;
+
+  @override
+  Session? get currentSession => _client.auth.currentSession;
 
   @override
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
@@ -68,6 +107,24 @@ class SupabaseAuthRepository implements AuthRepository {
       password: password,
       data: normalizedMetadata,
     );
+  }
+
+  @override
+  Future<bool> emailExists(String email) async {
+    final response = await _client.functions.invoke(
+      'check-email',
+      body: {'email': email.trim().toLowerCase()},
+    );
+    final data = response.data;
+    final exists = data is Map ? data['exists'] : null;
+
+    if (exists is! bool) {
+      throw const FormatException(
+        'The check-email function returned an invalid response.',
+      );
+    }
+
+    return exists;
   }
 
   @override

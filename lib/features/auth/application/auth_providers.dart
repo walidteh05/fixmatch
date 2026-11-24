@@ -2,9 +2,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/auth_repository.dart';
+import '../data/technician_registration_repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>(
   (_) => SupabaseAuthRepository(Supabase.instance.client),
+);
+
+final technicianRegistrationRepositoryProvider =
+    Provider<TechnicianRegistrationRepository>(
+  (_) => SupabaseTechnicianRegistrationRepository(
+    Supabase.instance.client,
+  ),
 );
 
 final authStateChangesProvider = StreamProvider<AuthState>((ref) {

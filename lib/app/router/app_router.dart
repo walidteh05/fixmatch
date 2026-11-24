@@ -11,6 +11,7 @@ import '../../features/auth/presentation/screens/pending_approval_screen.dart';
 import '../../features/auth/presentation/screens/register_email_screen.dart';
 import '../../features/auth/presentation/screens/technician_application_screen.dart';
 import '../../features/auth/presentation/screens/technician_home_screen.dart';
+import '../../features/auth/presentation/screens/technician_rejected_screen.dart';
 import '../../features/auth/presentation/screens/welcome_new_member_screen.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import 'app_routes.dart';
@@ -18,10 +19,7 @@ import 'app_routes.dart';
 final GoRouter appRouter = GoRouter(
   initialLocation: '/welcome',
   routes: [
-    GoRoute(
-      path: '/',
-      redirect: (context, state) => '/welcome',
-    ),
+    GoRoute(path: '/', redirect: (context, state) => '/welcome'),
     GoRoute(
       path: '/welcome',
       name: AppRoute.welcome,
@@ -45,7 +43,12 @@ final GoRouter appRouter = GoRouter(
       name: AppRoute.loginPassword,
       builder: (context, state) {
         final email = state.uri.queryParameters['email'] ?? '';
-        return LoginPasswordScreen(email: email);
+        final sessionExpired =
+            state.uri.queryParameters['sessionExpired'] == 'true';
+        return LoginPasswordScreen(
+          email: email,
+          sessionExpired: sessionExpired,
+        );
       },
     ),
     GoRoute(
@@ -69,10 +72,7 @@ final GoRouter appRouter = GoRouter(
         final accountType = AccountType.values.byName(
           state.uri.queryParameters['accountType'] ?? AccountType.customer.name,
         );
-        return CustomerProfileScreen(
-          email: email,
-          accountType: accountType,
-        );
+        return CustomerProfileScreen(email: email, accountType: accountType);
       },
     ),
     GoRoute(
@@ -80,12 +80,15 @@ final GoRouter appRouter = GoRouter(
       name: AppRoute.technicianApplication,
       builder: (context, state) {
         final email = state.uri.queryParameters['email'] ?? '';
+        final resume = state.uri.queryParameters['resume'] == 'true';
         final accountType = AccountType.values.byName(
-          state.uri.queryParameters['accountType'] ?? AccountType.technician.name,
+          state.uri.queryParameters['accountType'] ??
+              AccountType.technician.name,
         );
         return TechnicianApplicationScreen(
           email: email,
           accountType: accountType,
+          resume: resume,
         );
       },
     ),
@@ -93,6 +96,13 @@ final GoRouter appRouter = GoRouter(
       path: '/pending-approval',
       name: AppRoute.pendingApproval,
       builder: (context, state) => const PendingApprovalScreen(),
+    ),
+    GoRoute(
+      path: '/technician-rejected',
+      name: AppRoute.technicianRejected,
+      builder: (context, state) => TechnicianRejectedScreen(
+        reason: state.uri.queryParameters['reason'] ?? '',
+      ),
     ),
     GoRoute(
       path: '/forgot-password',

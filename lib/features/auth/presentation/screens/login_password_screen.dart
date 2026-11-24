@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../application/auth_providers.dart';
+import '../../data/auth_repository.dart';
 
 String? validateLoginPassword(String? value) {
   if (value == null || value.trim().isEmpty) {
@@ -20,9 +21,11 @@ class LoginPasswordScreen extends ConsumerStatefulWidget {
   const LoginPasswordScreen({
     super.key,
     required this.email,
+    this.sessionExpired = false,
   });
 
   final String email;
+  final bool sessionExpired;
 
   @override
   ConsumerState<LoginPasswordScreen> createState() =>
@@ -34,6 +37,34 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isSubmitting = false;
+  bool _hasAuthenticatedSession = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.sessionExpired) {
+      _showSessionExpiredMessage();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant LoginPasswordScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.sessionExpired && widget.sessionExpired) {
+      _showSessionExpiredMessage();
+    }
+  }
+
+  void _showSessionExpiredMessage() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Session หมดอายุหรือใช้งานไม่ได้ กรุณาเข้าสู่ระบบใหม่'),
+        ),
+      );
+    });
+  }
 
   @override
   void dispose() {
@@ -74,32 +105,29 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
   }
 
   Future<void> _resolveAndRouteAfterLogin(User user) async {
-    final client = Supabase.instance.client;
     final messenger = ScaffoldMessenger.maybeOf(context);
     final router = GoRouter.of(context);
-
-    final profileResponse = await client
+    final profile = await Supabase.instance.client
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .maybeSingle();
 
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
-    if (profileResponse == null || profileResponse['role'] == null) {
-      await ref.read(authRepositoryProvider).signOut();
+    final roleValue = profile?['role'];
+    if (profile == null || roleValue is! String || roleValue.trim().isEmpty) {
       messenger?.showSnackBar(
         const SnackBar(
-          content: Text('ไม่พบข้อมูลโปรไฟล์ผู้ใช้งาน กรุณาลองใหม่อีกครั้ง'),
+          content: Text(
+            'ไม่พบข้อมูลโปรไฟล์บัญชีนี้ จึงไม่สามารถกำหนดประเภทบัญชีได้',
+          ),
         ),
       );
       return;
     }
 
-    final role = profileResponse['role'].toString().toLowerCase();
-
+    final role = roleValue.trim().toLowerCase();
     if (role == 'customer') {
       if (!mounted) {
         return;
@@ -109,40 +137,55 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
     }
 
     if (role == 'technician') {
-      final technicianResponse = await client
-          .from('technician_profiles')
-          .select('status')
-          .eq('profile_id', user.id)
-          .maybeSingle();
+      final application = await ref
+          .read(technicianRegistrationRepositoryProvider)
+          .loadApplicationSnapshot(profileId: user.id);
 
       if (!mounted) {
         return;
       }
 
-      final technicianStatus = (technicianResponse?['status'] ?? 'pending')
-          .toString()
-          .toLowerCase();
+      if (!application.profileExists) {
+        await ref.read(authRepositoryProvider).signOut();
+        messenger?.showSnackBar(
+          const SnackBar(
+            content: Text('ไม่พบข้อมูลบัญชีช่าง กรุณาติดต่อผู้ดูแลระบบ'),
+          ),
+        );
+        return;
+      }
+
+      final technicianStatus = application.status?.trim().toLowerCase();
 
       switch (technicianStatus) {
         case 'pending':
+          if (!application.isComplete) {
+            router.goNamed(
+              AppRoute.technicianApplication,
+              queryParameters: {'email': user.email ?? '', 'resume': 'true'},
+            );
+            break;
+          }
           router.goNamed(AppRoute.pendingApproval);
           break;
         case 'approved':
           router.goNamed(AppRoute.technicianHome);
           break;
         case 'rejected':
-          await ref.read(authRepositoryProvider).signOut();
-          messenger?.showSnackBar(
-            const SnackBar(
-              content: Text('บัญชีช่างของคุณถูกปฏิเสธการสมัคร กรุณาติดต่อผู้ดูแลระบบ'),
-            ),
+          router.goNamed(
+            AppRoute.technicianRejected,
+            queryParameters: {
+              'reason': application.rejectedReason?.trim() ?? '',
+            },
           );
           break;
         case 'suspended':
           await ref.read(authRepositoryProvider).signOut();
           messenger?.showSnackBar(
             const SnackBar(
-              content: Text('บัญชีช่างของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ'),
+              content: Text(
+                'บัญชีช่างของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ',
+              ),
             ),
           );
           break;
@@ -150,7 +193,9 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
           await ref.read(authRepositoryProvider).signOut();
           messenger?.showSnackBar(
             const SnackBar(
-              content: Text('สถานะบัญชีช่างไม่พร้อมใช้งาน กรุณาติดต่อผู้ดูแลระบบ'),
+              content: Text(
+                'สถานะบัญชีช่างไม่พร้อมใช้งาน กรุณาติดต่อผู้ดูแลระบบ',
+              ),
             ),
           );
       }
@@ -164,7 +209,9 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
 
     messenger?.showSnackBar(
       const SnackBar(
-        content: Text('บัญชีนี้ไม่สามารถเข้าสู่แอปมือถือได้ กรุณาติดต่อผู้ดูแลระบบ'),
+        content: Text(
+          'บัญชีนี้ไม่สามารถเข้าสู่แอปมือถือได้ กรุณาติดต่อผู้ดูแลระบบ',
+        ),
       ),
     );
   }
@@ -193,20 +240,32 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
       final session = response.session;
 
       if (user == null || session == null) {
-        throw const AuthException('Login failed. No active session was created.');
+        throw const AuthException(
+          'Login failed. No active session was created.',
+        );
       }
 
+      _hasAuthenticatedSession = true;
       await _resolveAndRouteAfterLogin(user);
     } on AuthException catch (error) {
       if (!mounted) {
         return;
       }
 
+      if (_hasAuthenticatedSession && isAuthSessionFailure(error)) {
+        context.goNamed(
+          AppRoute.loginPassword,
+          queryParameters: {
+            'email': widget.email.trim(),
+            'sessionExpired': 'true',
+          },
+        );
+        return;
+      }
+
       final messenger = ScaffoldMessenger.maybeOf(context);
       messenger?.showSnackBar(
-        SnackBar(
-          content: Text(_friendlyAuthError(error)),
-        ),
+        SnackBar(content: Text(_friendlyAuthError(error))),
       );
     } on PostgrestException catch (error) {
       if (!mounted) {
@@ -215,9 +274,22 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
 
       final messenger = ScaffoldMessenger.maybeOf(context);
       debugPrint('Profile lookup failed: ${error.message}');
+      if (_hasAuthenticatedSession && isAuthSessionFailure(error)) {
+        context.goNamed(
+          AppRoute.loginPassword,
+          queryParameters: {
+            'email': widget.email.trim(),
+            'sessionExpired': 'true',
+          },
+        );
+        return;
+      }
+
       messenger?.showSnackBar(
         const SnackBar(
-          content: Text('ไม่สามารถตรวจสอบข้อมูลผู้ใช้งานได้ กรุณาลองใหม่อีกครั้ง'),
+          content: Text(
+            'ไม่สามารถตรวจสอบข้อมูลผู้ใช้งานได้ กรุณาลองใหม่อีกครั้ง',
+          ),
         ),
       );
     } catch (error) {
@@ -225,12 +297,21 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
         return;
       }
 
+      if (_hasAuthenticatedSession && isAuthSessionFailure(error)) {
+        context.goNamed(
+          AppRoute.loginPassword,
+          queryParameters: {
+            'email': widget.email.trim(),
+            'sessionExpired': 'true',
+          },
+        );
+        return;
+      }
+
       final messenger = ScaffoldMessenger.maybeOf(context);
       debugPrint('Login error: $error');
       messenger?.showSnackBar(
-        SnackBar(
-          content: Text(_friendlyAuthError(error)),
-        ),
+        SnackBar(content: Text(_friendlyAuthError(error))),
       );
     } finally {
       if (mounted) {
@@ -384,9 +465,12 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                                   }
                                 },
                                 style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
                                   minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 child: const Text(
                                   'เปลี่ยน',
@@ -417,10 +501,7 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: textDark,
-                          ),
+                          style: const TextStyle(fontSize: 15, color: textDark),
                           decoration: InputDecoration(
                             hintText: 'กรอกรหัสผ่านของคุณ',
                             hintStyle: const TextStyle(
@@ -510,10 +591,7 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [
-                                  Color(0xFF388BFF),
-                                  Color(0xFF1E67FF),
-                                ],
+                                colors: [Color(0xFF388BFF), Color(0xFF1E67FF)],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ),
@@ -536,7 +614,9 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                               ),
                               onPressed: _isSubmitting ? null : _handleLogin,
                               child: Text(
-                                _isSubmitting ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ',
+                                _isSubmitting
+                                    ? 'กำลังเข้าสู่ระบบ...'
+                                    : 'เข้าสู่ระบบ',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
