@@ -35,7 +35,11 @@ class DocumentUploadField extends StatelessWidget {
   String get _fileTypeText => allowMultiple ? 'หลายรูป' : '1 ไฟล์';
 
   Widget _buildFilePreview(PlatformFile file) {
-    final isImage = ['jpg', 'jpeg', 'png'].contains((file.extension ?? '').toLowerCase());
+    final isImage = [
+      'jpg',
+      'jpeg',
+      'png',
+    ].contains((file.extension ?? '').toLowerCase());
 
     if (isImage && file.path != null) {
       return ClipRRect(
@@ -56,14 +60,15 @@ class DocumentUploadField extends StatelessWidget {
         color: AppColors.primaryLight,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Icon(
-        Icons.picture_as_pdf_rounded,
-        color: AppColors.primary,
-      ),
+      child: const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary),
     );
   }
 
-  Widget _buildSingleFileTile(BuildContext context, PlatformFile file, int index) {
+  Widget _buildSingleFileTile(
+    BuildContext context,
+    PlatformFile file,
+    int index,
+  ) {
     return Container(
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(12),
@@ -173,7 +178,10 @@ class DocumentUploadField extends StatelessWidget {
                 left: 8,
                 right: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.45),
                     borderRadius: BorderRadius.circular(8),
@@ -206,19 +214,13 @@ class DocumentUploadField extends StatelessWidget {
             if (required)
               const Padding(
                 padding: EdgeInsets.only(left: 6),
-                child: Text(
-                  '*',
-                  style: TextStyle(color: AppColors.error),
-                ),
+                child: Text('*', style: TextStyle(color: AppColors.error)),
               ),
           ],
         ),
         if (helperText != null) ...[
           const SizedBox(height: 6),
-          Text(
-            helperText!,
-            style: AppTextStyles.bodySmall,
-          ),
+          Text(helperText!, style: AppTextStyles.bodySmall),
         ],
         const SizedBox(height: 10),
         GestureDetector(
@@ -264,7 +266,9 @@ class DocumentUploadField extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              allowPdf ? 'เลือกไฟล์ PDF / JPG / PNG' : 'เลือกรูปภาพ JPG / PNG',
+                              allowPdf
+                                  ? 'เลือกไฟล์ PDF / JPG / PNG'
+                                  : 'เลือกรูปภาพ JPG / PNG',
                               style: AppTextStyles.bodyMedium,
                             ),
                             const SizedBox(height: 4),

@@ -10,11 +10,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
-import '../../application/auth_providers.dart';
-import '../../data/auth_repository.dart';
-import '../../domain/account_type.dart';
-import '../../data/technician_registration_repository.dart';
-import '../widgets/auth_primary_button.dart';
+
+import 'package:fixmatch/core/widgets/auth_primary_button.dart';
+import 'package:fixmatch/features/auth/application/auth_providers.dart';
+import 'package:fixmatch/features/auth/data/auth_repository.dart';
+import 'package:fixmatch/features/auth/data/technician_registration_repository.dart';
+import 'package:fixmatch/features/auth/domain/account_type.dart';
+
 import '../widgets/auth_text_field.dart';
 import '../widgets/document_upload_field.dart';
 

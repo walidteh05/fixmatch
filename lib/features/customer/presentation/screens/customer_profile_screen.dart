@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/router/app_routes.dart';
-import '../../application/auth_providers.dart';
-import '../../domain/account_type.dart';
+
+import 'package:fixmatch/features/auth/application/auth_providers.dart';
+import 'package:fixmatch/features/auth/domain/account_type.dart';
 
 class CustomerProfileScreen extends ConsumerStatefulWidget {
   const CustomerProfileScreen({
@@ -179,9 +180,8 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       );
     } on AuthException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_friendlyAuthMessage(error))),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(_friendlyAuthMessage(error))));
     } catch (error) {
       if (!mounted) return;
       debugPrint('Customer sign up failed: $error');
@@ -232,12 +232,11 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
           ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-              color: Color(0xFF94A3B8),
-              fontSize: 14,
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             filled: true,
             fillColor: readOnly ? softBlue : Colors.white,
             suffixIcon: suffixIcon,
@@ -282,9 +281,10 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
             if (context.canPop()) {
               context.pop();
             } else {
-              context.goNamed(AppRoute.chooseAccountType, queryParameters: {
-                'email': widget.email,
-              });
+              context.goNamed(
+                AppRoute.chooseAccountType,
+                queryParameters: {'email': widget.email},
+              );
             }
           },
           icon: const Icon(
@@ -332,10 +332,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                     const SizedBox(height: 6),
                     const Text(
                       'กรอกข้อมูลเพื่อสร้างบัญชีและเริ่มต้นใช้งาน FixMatch',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textMuted,
-                      ),
+                      style: TextStyle(fontSize: 14, color: textMuted),
                     ),
                     const SizedBox(height: 28),
 
@@ -410,8 +407,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                       suffixIcon: IconButton(
                         onPressed: () {
                           setState(() {
-                            _obscureConfirmPassword =
-                                !_obscureConfirmPassword;
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
                           });
                         },
                         icon: Icon(
@@ -440,10 +436,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                       },
                       title: const Text(
                         'ฉันยอมรับข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัว',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: textDark,
-                        ),
+                        style: TextStyle(fontSize: 13, color: textDark),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -454,10 +447,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFF388BFF),
-                              Color(0xFF1E67FF),
-                            ],
+                            colors: [Color(0xFF388BFF), Color(0xFF1E67FF)],
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                           ),
@@ -510,7 +500,9 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                         borderRadius: BorderRadius.circular(8),
                         child: const Padding(
                           padding: EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -522,10 +514,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                               SizedBox(width: 6),
                               Text(
                                 'ต้องการความช่วยเหลือ? ',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: textDark,
-                                ),
+                                style: TextStyle(fontSize: 13, color: textDark),
                               ),
                               Text(
                                 'ติดต่อเรา',

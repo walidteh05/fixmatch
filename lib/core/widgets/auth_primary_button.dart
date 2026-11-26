@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../app/theme/app_colors.dart';
 
 class AuthPrimaryButton extends StatelessWidget {
   const AuthPrimaryButton({

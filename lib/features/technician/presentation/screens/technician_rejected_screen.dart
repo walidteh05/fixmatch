@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
-import '../widgets/auth_primary_button.dart';
+
+import 'package:fixmatch/core/widgets/auth_primary_button.dart';
 
 class TechnicianRejectedScreen extends StatelessWidget {
   const TechnicianRejectedScreen({super.key, required this.reason});

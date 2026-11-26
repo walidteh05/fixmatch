@@ -33,10 +33,7 @@ class AuthTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: AppTextStyles.label,
-        ),
+        Text(label, style: AppTextStyles.label),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,

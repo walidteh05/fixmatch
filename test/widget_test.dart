@@ -4,7 +4,7 @@ import 'package:fixmatch/app/app.dart';
 import 'package:fixmatch/features/auth/presentation/screens/login_email_screen.dart';
 import 'package:fixmatch/features/auth/presentation/screens/login_password_screen.dart';
 import 'package:fixmatch/features/auth/presentation/screens/register_email_screen.dart';
-import 'package:fixmatch/features/auth/presentation/screens/technician_application_screen.dart';
+import 'package:fixmatch/features/technician/presentation/screens/technician_application_screen.dart';
 
 void main() {
   testWidgets('FixMatch app opens the welcome screen', (tester) async {

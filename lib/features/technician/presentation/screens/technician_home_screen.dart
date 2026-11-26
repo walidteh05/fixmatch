@@ -4,10 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
-import '../widgets/auth_primary_button.dart';
 
-class CustomerHomeScreen extends StatelessWidget {
-  const CustomerHomeScreen({super.key});
+import 'package:fixmatch/core/widgets/auth_primary_button.dart';
+
+class TechnicianHomeScreen extends StatelessWidget {
+  const TechnicianHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,18 +22,15 @@ class CustomerHomeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(
-                  Icons.home_rounded,
+                  Icons.handyman_rounded,
                   size: 80,
                   color: AppColors.primary,
                 ),
                 const SizedBox(height: 20),
-                Text(
-                  'Customer Dashboard',
-                  style: AppTextStyles.headingLarge,
-                ),
+                Text('Technician Dashboard', style: AppTextStyles.headingLarge),
                 const SizedBox(height: 12),
                 Text(
-                  'พื้นที่สำหรับลูกค้าเพื่อค้นหาช่างและจองบริการในอนาคต',
+                  'พื้นที่สำหรับช่างที่รอการอนุมัติและจัดการงานภายหลัง',
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,

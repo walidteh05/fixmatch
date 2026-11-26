@@ -2,18 +2,18 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/domain/account_type.dart';
 import '../../features/auth/presentation/screens/choose_account_type_screen.dart';
-import '../../features/auth/presentation/screens/customer_home_screen.dart';
-import '../../features/auth/presentation/screens/customer_profile_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_email_screen.dart';
 import '../../features/auth/presentation/screens/login_password_screen.dart';
-import '../../features/auth/presentation/screens/pending_approval_screen.dart';
 import '../../features/auth/presentation/screens/register_email_screen.dart';
-import '../../features/auth/presentation/screens/technician_application_screen.dart';
-import '../../features/auth/presentation/screens/technician_home_screen.dart';
-import '../../features/auth/presentation/screens/technician_rejected_screen.dart';
 import '../../features/auth/presentation/screens/welcome_new_member_screen.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
+import '../../features/customer/presentation/screens/customer_home_screen.dart';
+import '../../features/customer/presentation/screens/customer_profile_screen.dart';
+import '../../features/technician/presentation/screens/pending_approval_screen.dart';
+import '../../features/technician/presentation/screens/technician_application_screen.dart';
+import '../../features/technician/presentation/screens/technician_home_screen.dart';
+import '../../features/technician/presentation/screens/technician_rejected_screen.dart';
 import 'app_routes.dart';
 
 final GoRouter appRouter = GoRouter(
