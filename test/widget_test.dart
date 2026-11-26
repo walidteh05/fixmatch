@@ -1,16 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:fixmatch/app/app.dart';
+import 'package:fixmatch/features/auth/application/auth_providers.dart';
+import 'package:fixmatch/features/auth/data/technician_registration_repository.dart';
 import 'package:fixmatch/features/auth/presentation/screens/login_email_screen.dart';
 import 'package:fixmatch/features/auth/presentation/screens/login_password_screen.dart';
 import 'package:fixmatch/features/auth/presentation/screens/register_email_screen.dart';
 import 'package:fixmatch/features/technician/presentation/screens/technician_application_screen.dart';
 
 void main() {
+  setUpAll(() async {
+    await Supabase.initialize(
+      url: 'http://localhost:54321',
+      publishableKey: 'test-publishable-key',
+      authOptions: const FlutterAuthClientOptions(
+        detectSessionInUri: false,
+        localStorage: EmptyLocalStorage(),
+        pkceAsyncStorage: _NoopPkceStorage(),
+      ),
+      debug: false,
+    );
+  });
+
   testWidgets('FixMatch app opens the welcome screen', (tester) async {
     await tester.pumpWidget(const FixMatchApp());
 
-    expect(find.text('บริการซ่อมบ้าน เริ่มต้นได้ที่ FixMatch'), findsOneWidget);
+    expect(find.text('บริการซ่อมบ้าน เริ่มต้นได้ที่นี่'), findsOneWidget);
   });
 
   test('login email validation rejects invalid email', () {
@@ -58,29 +75,69 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: TechnicianApplicationScreen(email: 'tech@example.com'),
+      ProviderScope(
+        overrides: [
+          technicianRegistrationRepositoryProvider.overrideWithValue(
+            _FakeTechnicianRegistrationRepository([
+              const ServiceCategory(
+                id: 'air-conditioning',
+                name: 'Air Conditioning',
+                slug: 'air-conditioning',
+                isActive: true,
+              ),
+              const ServiceCategory(
+                id: 'electrical',
+                name: 'Electrical',
+                slug: 'electrical',
+                isActive: true,
+              ),
+            ]),
+          ),
+        ],
+        child: const MaterialApp(
+          home: TechnicianApplicationScreen(email: 'tech@example.com'),
+        ),
       ),
     );
+    await tester.pumpAndSettle();
 
-    final airConditioningChipFinder = find.widgetWithText(
-      FilterChip,
-      'Air Conditioning',
-    );
-    final electricalChipFinder = find.widgetWithText(FilterChip, 'Electrical');
+    final airConditioningFinder = find.text('Air Conditioning');
+    final electricalFinder = find.text('Electrical');
 
-    await tester.scrollUntilVisible(airConditioningChipFinder, 100);
-    await tester.tap(airConditioningChipFinder);
-    await tester.scrollUntilVisible(electricalChipFinder, 100);
-    await tester.tap(electricalChipFinder);
-    await tester.pump();
+    await tester.ensureVisible(airConditioningFinder);
+    await tester.tap(airConditioningFinder);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(electricalFinder);
+    await tester.tap(electricalFinder);
+    await tester.pumpAndSettle();
 
-    final airConditioningChip = tester.widget<FilterChip>(
-      airConditioningChipFinder,
-    );
-    final electricalChip = tester.widget<FilterChip>(electricalChipFinder);
-
-    expect(airConditioningChip.selected, isTrue);
-    expect(electricalChip.selected, isTrue);
+    expect(find.byIcon(Icons.check_circle_outline_rounded), findsNWidgets(2));
   });
+}
+
+class _NoopPkceStorage extends GotrueAsyncStorage {
+  const _NoopPkceStorage();
+
+  @override
+  Future<String?> getItem({required String key}) async => null;
+
+  @override
+  Future<void> setItem({required String key, required String value}) async {}
+
+  @override
+  Future<void> removeItem({required String key}) async {}
+}
+
+class _FakeTechnicianRegistrationRepository
+    implements TechnicianRegistrationRepository {
+  _FakeTechnicianRegistrationRepository(this.categories);
+
+  final List<ServiceCategory> categories;
+
+  @override
+  Future<List<ServiceCategory>> loadActiveServiceCategories() async =>
+      categories;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
