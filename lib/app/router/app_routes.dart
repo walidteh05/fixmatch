@@ -14,4 +14,7 @@ class AppRoute {
   static const String forgotPassword = 'forgotPassword';
   static const String customerHome = 'customerHome';
   static const String technicianHome = 'technicianHome';
+  static const String technicianDetail = 'technicianDetail';
+  static const String customerAccountProfile = 'customerAccountProfile';
+  static const String customerBookings = 'customerBookings';
 }

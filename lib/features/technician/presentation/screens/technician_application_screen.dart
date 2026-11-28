@@ -14,8 +14,9 @@ import '../../../../app/theme/app_text_styles.dart';
 import 'package:fixmatch/core/widgets/auth_primary_button.dart';
 import 'package:fixmatch/features/auth/application/auth_providers.dart';
 import 'package:fixmatch/features/auth/data/auth_repository.dart';
-import 'package:fixmatch/features/auth/data/technician_registration_repository.dart';
 import 'package:fixmatch/features/auth/domain/account_type.dart';
+import 'package:fixmatch/features/technician/data/technician_registration_repository.dart';
+import 'package:fixmatch/features/technician/technician_providers.dart';
 
 import '../widgets/auth_text_field.dart';
 import '../widgets/document_upload_field.dart';

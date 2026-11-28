@@ -12,7 +12,8 @@ import '../../../../app/theme/app_text_styles.dart';
 import 'package:fixmatch/core/widgets/auth_primary_button.dart';
 import 'package:fixmatch/features/auth/application/auth_providers.dart';
 import 'package:fixmatch/features/auth/data/auth_repository.dart';
-import 'package:fixmatch/features/auth/domain/technician_status.dart';
+import 'package:fixmatch/features/technician/domain/technician_status.dart';
+import 'package:fixmatch/features/technician/technician_providers.dart';
 
 class PendingApprovalScreen extends ConsumerStatefulWidget {
   const PendingApprovalScreen({super.key});

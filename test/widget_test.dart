@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:fixmatch/app/app.dart';
-import 'package:fixmatch/features/auth/application/auth_providers.dart';
-import 'package:fixmatch/features/auth/data/technician_registration_repository.dart';
 import 'package:fixmatch/features/auth/presentation/screens/login_email_screen.dart';
 import 'package:fixmatch/features/auth/presentation/screens/login_password_screen.dart';
 import 'package:fixmatch/features/auth/presentation/screens/register_email_screen.dart';
+import 'package:fixmatch/features/technician/data/technician_registration_repository.dart';
 import 'package:fixmatch/features/technician/presentation/screens/technician_application_screen.dart';
+import 'package:fixmatch/features/technician/technician_providers.dart';
 
 void main() {
   setUpAll(() async {

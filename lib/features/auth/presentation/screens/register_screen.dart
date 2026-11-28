@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_colors.dart';
 
 enum AccountType { customer, technician }
 
@@ -42,11 +43,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final Set<String> _selectedCategories = {};
 
-  static const primaryBlue = Color(0xFF2979FF);
-  static const softBlue = Color(0xFFF4F8FD);
-  static const textDark = Color(0xFF1E242B);
-  static const textMuted = Color(0xFF6C7A89);
-  static const borderColor = Color(0xFFE2E8F0);
+  static const primaryBlue = AppColors.primary;
+  static const softBlue = AppColors.primarySurface;
+  static const textDark = AppColors.textPrimary;
+  static const textMuted = AppColors.textSecondary;
+  static const borderColor = AppColors.border;
 
   @override
   void dispose() {
@@ -92,9 +93,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('รหัสผ่านไม่ตรงกัน')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('รหัสผ่านไม่ตรงกัน')));
       return;
     }
 
@@ -107,7 +107,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (!_acceptedTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('กรุณายอมรับเงื่อนไขและนโยบายความเป็นส่วนตัว')),
+        const SnackBar(
+          content: Text('กรุณายอมรับเงื่อนไขและนโยบายความเป็นส่วนตัว'),
+        ),
       );
       return;
     }
@@ -154,10 +156,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           style: const TextStyle(fontSize: 15, color: textDark),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            hintStyle: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: AppColors.surface,
             suffixIcon: suffixIcon,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -169,11 +177,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.redAccent, width: 1.2),
+              borderSide: const BorderSide(color: AppColors.error, width: 1.2),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+              borderSide: const BorderSide(color: AppColors.error, width: 1.5),
             ),
           ),
         ),
@@ -244,7 +252,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: selected ? softBlue : Colors.white,
+          color: selected ? softBlue : AppColors.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: selected ? primaryBlue : borderColor,
@@ -262,11 +270,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              size: 30,
-              color: selected ? primaryBlue : textMuted,
-            ),
+            Icon(icon, size: 30, color: selected ? primaryBlue : textMuted),
             const SizedBox(height: 8),
             Text(
               title,
@@ -280,10 +284,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 11,
-                color: textMuted,
-              ),
+              style: const TextStyle(fontSize: 11, color: textMuted),
             ),
           ],
         ),
@@ -319,7 +320,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 color: selected ? primaryBlue : textDark,
               ),
               selected: selected,
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.surface,
               selectedColor: softBlue,
               side: BorderSide(
                 color: selected ? primaryBlue : borderColor,
@@ -382,7 +383,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: const BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surface,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -404,10 +405,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const Text(
                 'บัตรประชาชน / ใบประกอบวิชาชีพ (ถ้ามี)',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: textMuted,
-                ),
+                style: TextStyle(fontSize: 11, color: textMuted),
               ),
             ],
           ),
@@ -416,23 +414,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFF8E1),
+            color: AppColors.warning.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFFFE082)),
+            border: Border.all(
+              color: AppColors.warning.withValues(alpha: 0.45),
+            ),
           ),
           child: const Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.info_rounded,
-                color: Color(0xFFF57F17),
-                size: 18,
-              ),
+              Icon(Icons.info_rounded, color: AppColors.warning, size: 18),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'บัญชีช่างของคุณจะอยู่ในสถานะ "รอการตรวจสอบ" เพื่อความปลอดภัยของผู้ใช้งานทุกท่าน',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF5D4037), height: 1.4),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textPrimary,
+                    height: 1.4,
+                  ),
                 ),
               ),
             ],
@@ -445,9 +445,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
         leadingWidth: 90,
@@ -502,10 +502,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 6),
                     const Text(
                       'เริ่มต้นใช้งาน FixMatch เพื่อบริการที่ตรงใจคุณ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textMuted,
-                      ),
+                      style: TextStyle(fontSize: 14, color: textMuted),
                     ),
                     const SizedBox(height: 24),
 
@@ -552,7 +549,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           _obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
-                          color: const Color(0xFF94A3B8),
+                          color: AppColors.textSecondary,
                           size: 20,
                         ),
                       ),
@@ -582,7 +579,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           _obscureConfirmPassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
-                          color: const Color(0xFF94A3B8),
+                          color: AppColors.textSecondary,
                           size: 20,
                         ),
                       ),
@@ -609,10 +606,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controlAffinity: ListTileControlAffinity.leading,
                       title: const Text(
                         'ฉันยอมรับเงื่อนไขการใช้งานและนโยบายความเป็นส่วนตัว',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: textDark,
-                        ),
+                        style: TextStyle(fontSize: 13, color: textDark),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -623,7 +617,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF388BFF), Color(0xFF1E67FF)],
+                            colors: [
+                              AppColors.primaryGradientStart,
+                              AppColors.primaryDark,
+                            ],
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                           ),
@@ -652,7 +649,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: AppColors.surface,
                             ),
                           ),
                         ),
@@ -699,7 +696,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onTap: () {},
                         borderRadius: BorderRadius.circular(8),
                         child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -711,10 +711,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               SizedBox(width: 6),
                               Text(
                                 'ต้องการความช่วยเหลือ? ',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: textDark,
-                                ),
+                                style: TextStyle(fontSize: 13, color: textDark),
                               ),
                               Text(
                                 'ติดต่อเรา',

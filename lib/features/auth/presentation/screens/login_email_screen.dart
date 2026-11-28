@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_colors.dart';
 
 String? validateLoginEmail(String? value) {
   final trimmed = value?.trim() ?? '';
@@ -52,15 +53,15 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF2979FF);
-    const textDark = Color(0xFF1E242B);
-    const textMuted = Color(0xFF6C7A89);
-    const borderColor = Color(0xFFE2E8F0);
+    const primaryBlue = AppColors.primary;
+    const textDark = AppColors.textPrimary;
+    const textMuted = AppColors.textSecondary;
+    const borderColor = AppColors.border;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
         leadingWidth: 90,
@@ -112,8 +113,8 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                               shape: BoxShape.circle,
                               gradient: const LinearGradient(
                                 colors: [
-                                  Color(0xFF82D2FF),
-                                  Color(0xFF2979FF),
+                                  AppColors.primaryLight,
+                                  AppColors.primary,
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -128,7 +129,7 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                             ),
                             child: const Icon(
                               Icons.home_repair_service_rounded,
-                              color: Colors.white,
+                              color: AppColors.surface,
                               size: 42,
                             ),
                           ),
@@ -173,14 +174,11 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: textDark,
-                          ),
+                          style: const TextStyle(fontSize: 15, color: textDark),
                           decoration: InputDecoration(
                             hintText: 'you@example.com',
                             hintStyle: const TextStyle(
-                              color: Color(0xFF94A3B8),
+                              color: AppColors.textSecondary,
                               fontSize: 15,
                             ),
                             contentPadding: const EdgeInsets.symmetric(
@@ -188,7 +186,7 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                               vertical: 14,
                             ),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: AppColors.surface,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(
@@ -206,14 +204,14 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(
-                                color: Colors.redAccent,
+                                color: AppColors.error,
                                 width: 1.2,
                               ),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(
-                                color: Colors.redAccent,
+                                color: AppColors.error,
                                 width: 1.5,
                               ),
                             ),
@@ -229,8 +227,8 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
                                 colors: [
-                                  Color(0xFF388BFF),
-                                  Color(0xFF1E67FF),
+                                  AppColors.primaryGradientStart,
+                                  AppColors.primaryDark,
                                 ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
@@ -258,7 +256,7 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  color: AppColors.surface,
                                 ),
                               ),
                             ),

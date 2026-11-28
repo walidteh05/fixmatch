@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+
 import 'app_colors.dart';
 
 class AppTheme {
@@ -13,10 +13,18 @@ class AppTheme {
 
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
-        onPrimary: Colors.white,
+        onPrimary: AppColors.surface,
         secondary: AppColors.primaryLight,
+        onSecondary: AppColors.textPrimary,
+        primaryContainer: AppColors.primarySurface,
+        onPrimaryContainer: AppColors.primaryDark,
         surface: AppColors.surface,
+        onSurface: AppColors.textPrimary,
+        onSurfaceVariant: AppColors.textSecondary,
+        outline: AppColors.border,
         error: AppColors.error,
+        onError: AppColors.surface,
+        surfaceTint: AppColors.surface,
       ),
 
       appBarTheme: const AppBarTheme(
@@ -25,6 +33,10 @@ class AppTheme {
         elevation: 0,
         centerTitle: false,
       ),
+
+      iconTheme: const IconThemeData(color: AppColors.textSecondary),
+
+      dividerTheme: const DividerThemeData(color: AppColors.border),
 
       cardTheme: CardThemeData(
         color: AppColors.surface,
@@ -52,22 +64,30 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
       ),
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.surface,
           elevation: 0,
           minimumSize: const Size(double.infinity, 48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+        ),
+      ),
+
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+      ),
+
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.border),
         ),
       ),
     );

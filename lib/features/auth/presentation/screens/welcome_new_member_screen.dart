@@ -2,30 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class WelcomeNewMemberScreen extends StatelessWidget {
-  const WelcomeNewMemberScreen({
-    super.key,
-    required this.email,
-  });
+  const WelcomeNewMemberScreen({super.key, required this.email});
 
   final String email;
 
-  static const primaryBlue = Color(0xFF2979FF);
-  static const darkBlue = Color(0xFF1565C0);
-  static const softBlue = Color(0xFFF4F8FD);
-  static const textDark = Color(0xFF1E242B);
-  static const textMuted = Color(0xFF6C7A89);
-  static const borderColor = Color(0xFFE2E8F0);
+  static const primaryBlue = AppColors.primary;
+  static const darkBlue = AppColors.primaryDark;
+  static const softBlue = AppColors.primarySurface;
+  static const textDark = AppColors.textPrimary;
+  static const textMuted = AppColors.textSecondary;
+  static const borderColor = AppColors.border;
 
   @override
   Widget build(BuildContext context) {
     final displayEmail = email.trim();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
         leadingWidth: 90,
@@ -73,10 +71,7 @@ class WelcomeNewMemberScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFF82D2FF),
-                            Color(0xFF2979FF),
-                          ],
+                          colors: [AppColors.primaryLight, AppColors.primary],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -90,7 +85,7 @@ class WelcomeNewMemberScreen extends StatelessWidget {
                       ),
                       child: const Icon(
                         Icons.person_add_alt_1_rounded,
-                        color: Colors.white,
+                        color: AppColors.surface,
                         size: 42,
                       ),
                     ),
@@ -122,10 +117,7 @@ class WelcomeNewMemberScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: softBlue,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: borderColor,
-                        width: 1.2,
-                      ),
+                      border: Border.all(color: borderColor, width: 1.2),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +132,9 @@ class WelcomeNewMemberScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          displayEmail.isNotEmpty ? displayEmail : 'อีเมลของคุณ',
+                          displayEmail.isNotEmpty
+                              ? displayEmail
+                              : 'อีเมลของคุณ',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -162,7 +156,7 @@ class WelcomeNewMemberScreen extends StatelessWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryBlue,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.surface,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),

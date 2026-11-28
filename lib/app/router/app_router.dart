@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/auth/domain/account_type.dart';
 import '../../features/auth/presentation/screens/choose_account_type_screen.dart';
@@ -10,6 +11,9 @@ import '../../features/auth/presentation/screens/welcome_new_member_screen.dart'
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/customer/presentation/screens/customer_home_screen.dart';
 import '../../features/customer/presentation/screens/customer_profile_screen.dart';
+import '../../features/customer/presentation/screens/customer_account_profile_screen.dart';
+import '../../features/customer/presentation/screens/technician_detail_screen.dart';
+import '../../features/customer/data/customer_marketplace_repository.dart';
 import '../../features/technician/presentation/screens/pending_approval_screen.dart';
 import '../../features/technician/presentation/screens/technician_application_screen.dart';
 import '../../features/technician/presentation/screens/technician_home_screen.dart';
@@ -112,12 +116,47 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/customer-home',
       name: AppRoute.customerHome,
+      redirect: (context, state) =>
+          Supabase.instance.client.auth.currentSession == null
+          ? '/login-email'
+          : null,
       builder: (context, state) => const CustomerHomeScreen(),
+    ),
+    GoRoute(
+      path: '/customer-profile/account',
+      name: AppRoute.customerAccountProfile,
+      redirect: (context, state) =>
+          Supabase.instance.client.auth.currentSession == null
+          ? '/login-email'
+          : null,
+      builder: (context, state) => const CustomerAccountProfileScreen(),
+    ),
+    GoRoute(
+      path: '/customer-bookings',
+      name: AppRoute.customerBookings,
+      redirect: (context, state) =>
+          Supabase.instance.client.auth.currentSession == null
+          ? '/login-email'
+          : null,
+      builder: (context, state) => const CustomerHomeScreen(initialTab: 2),
     ),
     GoRoute(
       path: '/technician-home',
       name: AppRoute.technicianHome,
       builder: (context, state) => const TechnicianHomeScreen(),
+    ),
+    GoRoute(
+      path: '/technician/:technicianId',
+      name: AppRoute.technicianDetail,
+      redirect: (context, state) =>
+          Supabase.instance.client.auth.currentSession == null
+          ? '/login-email'
+          : null,
+      builder: (context, state) => TechnicianDetailScreen(
+        technician: state.extra is RecommendedTechnician
+            ? state.extra! as RecommendedTechnician
+            : null,
+      ),
     ),
   ],
 );

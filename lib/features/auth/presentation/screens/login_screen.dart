@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -29,9 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Authentication will be connected later.'),
-      ),
+      const SnackBar(content: Text('Authentication will be connected later.')),
     );
   }
 
@@ -60,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: const Icon(
                           Icons.home_repair_service_rounded,
-                          color: Colors.white,
+                          color: AppColors.surface,
                           size: 40,
                         ),
                       ),

@@ -28,7 +28,7 @@ class AccountTypeCard extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryLight : AppColors.surface,
+          color: isSelected ? AppColors.primarySurface : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.border,
@@ -42,19 +42,13 @@ class AccountTypeCard extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
+                color: AppColors.primarySurface,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.primary,
-              ),
+              child: Icon(icon, color: AppColors.primary),
             ),
             const SizedBox(height: 14),
-            Text(
-              title,
-              style: AppTextStyles.headingSmall,
-            ),
+            Text(title, style: AppTextStyles.headingSmall),
             const SizedBox(height: 8),
             Text(
               description,

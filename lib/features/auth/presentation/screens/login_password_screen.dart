@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:fixmatch/features/technician/technician_providers.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../application/auth_providers.dart';
 import '../../data/auth_repository.dart';
 
@@ -322,16 +324,16 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF2979FF);
-    const textDark = Color(0xFF1E242B);
-    const textMuted = Color(0xFF6C7A89);
-    const borderColor = Color(0xFFE2E8F0);
-    const cardBgColor = Color(0xFFF4F8FD);
+    const primaryBlue = AppColors.primary;
+    const textDark = AppColors.textPrimary;
+    const textMuted = AppColors.textSecondary;
+    const borderColor = AppColors.border;
+    const cardBgColor = AppColors.primarySurface;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
         leadingWidth: 90,
@@ -422,7 +424,7 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppColors.surface,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: const Icon(
@@ -505,7 +507,7 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                           decoration: InputDecoration(
                             hintText: 'กรอกรหัสผ่านของคุณ',
                             hintStyle: const TextStyle(
-                              color: Color(0xFF94A3B8),
+                              color: AppColors.textSecondary,
                               fontSize: 15,
                             ),
                             contentPadding: const EdgeInsets.symmetric(
@@ -513,7 +515,7 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                               vertical: 14,
                             ),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: AppColors.surface,
                             suffixIcon: IconButton(
                               onPressed: () {
                                 setState(() {
@@ -524,7 +526,7 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                                 _obscurePassword
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: const Color(0xFF94A3B8),
+                                color: AppColors.textSecondary,
                                 size: 20,
                               ),
                             ),
@@ -545,14 +547,14 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(
-                                color: Colors.redAccent,
+                                color: AppColors.error,
                                 width: 1.2,
                               ),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(
-                                color: Colors.redAccent,
+                                color: AppColors.error,
                                 width: 1.5,
                               ),
                             ),
@@ -591,7 +593,10 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFF388BFF), Color(0xFF1E67FF)],
+                                colors: [
+                                  AppColors.primaryGradientStart,
+                                  AppColors.primaryDark,
+                                ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ),
@@ -620,7 +625,7 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  color: AppColors.surface,
                                 ),
                               ),
                             ),

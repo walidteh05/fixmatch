@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../domain/account_type.dart';
 
 class ChooseAccountTypeScreen extends StatefulWidget {
-  const ChooseAccountTypeScreen({
-    super.key,
-    required this.email,
-  });
+  const ChooseAccountTypeScreen({super.key, required this.email});
 
   final String email;
 
@@ -20,11 +18,11 @@ class ChooseAccountTypeScreen extends StatefulWidget {
 class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
   AccountType _selectedType = AccountType.customer;
 
-  static const primaryBlue = Color(0xFF2979FF);
-  static const softBlue = Color(0xFFF4F8FD);
-  static const textDark = Color(0xFF1E242B);
-  static const textMuted = Color(0xFF6C7A89);
-  static const borderColor = Color(0xFFE2E8F0);
+  static const primaryBlue = AppColors.primary;
+  static const softBlue = AppColors.primarySurface;
+  static const textDark = AppColors.textPrimary;
+  static const textMuted = AppColors.textSecondary;
+  static const borderColor = AppColors.border;
 
   void _onContinue() {
     if (_selectedType == AccountType.customer) {
@@ -66,7 +64,7 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: isSelected ? softBlue : Colors.white,
+          color: isSelected ? softBlue : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? primaryBlue : borderColor,
@@ -94,7 +92,7 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: isSelected ? Colors.white : softBlue,
+                color: isSelected ? AppColors.surface : softBlue,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected
@@ -102,11 +100,7 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
                       : Colors.transparent,
                 ),
               ),
-              child: Icon(
-                icon,
-                color: primaryBlue,
-                size: 26,
-              ),
+              child: Icon(icon, color: primaryBlue, size: 26),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -142,17 +136,13 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? primaryBlue : const Color(0xFFCBD5E1),
+                  color: isSelected ? primaryBlue : AppColors.border,
                   width: 2,
                 ),
                 color: isSelected ? primaryBlue : Colors.transparent,
               ),
               child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      size: 14,
-                      color: Colors.white,
-                    )
+                  ? const Icon(Icons.check, size: 14, color: AppColors.surface)
                   : null,
             ),
           ],
@@ -164,9 +154,9 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
         leadingWidth: 90,
@@ -296,8 +286,8 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [
-                                Color(0xFF388BFF),
-                                Color(0xFF1E67FF),
+                                AppColors.primaryGradientStart,
+                                AppColors.primaryDark,
                               ],
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
@@ -326,7 +316,7 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
                                 fontFamily: 'Prompt',
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: AppColors.surface,
                               ),
                             ),
                           ),

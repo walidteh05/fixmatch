@@ -3,20 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF2979FF);
-    const darkBlue = Color(0xFF1565C0);
-    const softBlue = Color(0xFFEDF5FF);
-    const textDark = Color(0xFF1E242B);
-    const textMuted = Color(0xFF6C7A89);
+    const primaryBlue = AppColors.primary;
+    const darkBlue = AppColors.primaryDark;
+    const softBlue = AppColors.primarySurface;
+    const textDark = AppColors.textPrimary;
+    const textMuted = AppColors.textSecondary;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -58,7 +59,7 @@ class WelcomeScreen extends StatelessWidget {
                             height: 155,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.surface,
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
@@ -107,8 +108,12 @@ class WelcomeScreen extends StatelessWidget {
                                       child: Container(
                                         height: 8,
                                         decoration: BoxDecoration(
-                                          color: primaryBlue.withValues(alpha: 0.25),
-                                          borderRadius: BorderRadius.circular(4),
+                                          color: primaryBlue.withValues(
+                                            alpha: 0.25,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -135,7 +140,10 @@ class WelcomeScreen extends StatelessWidget {
                             height: 54,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFF388BFF), darkBlue],
+                                colors: [
+                                  AppColors.primaryGradientStart,
+                                  darkBlue,
+                                ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
@@ -150,7 +158,7 @@ class WelcomeScreen extends StatelessWidget {
                             ),
                             child: const Icon(
                               Icons.build_rounded, // ประแจช่าง
-                              color: Colors.white,
+                              color: AppColors.surface,
                               size: 26,
                             ),
                           ),
@@ -161,9 +169,12 @@ class WelcomeScreen extends StatelessWidget {
                           left: 14,
                           bottom: 24,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.surface,
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
@@ -176,7 +187,11 @@ class WelcomeScreen extends StatelessWidget {
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.check_circle_rounded, color: Color(0xFF00C853), size: 16),
+                                Icon(
+                                  Icons.check_circle_rounded,
+                                  color: AppColors.success,
+                                  size: 16,
+                                ),
                                 SizedBox(width: 4),
                                 Text(
                                   'รับประกันงาน',
@@ -232,7 +247,10 @@ class WelcomeScreen extends StatelessWidget {
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF388BFF), Color(0xFF1E67FF)],
+                          colors: [
+                            AppColors.primaryGradientStart,
+                            AppColors.primaryDark,
+                          ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                         ),
@@ -262,7 +280,7 @@ class WelcomeScreen extends StatelessWidget {
                             fontFamily: 'Prompt',
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: AppColors.surface,
                           ),
                         ),
                       ),
@@ -312,13 +330,17 @@ class WelcomeScreen extends StatelessWidget {
   static Widget _buildChecklistRow(Color accentColor) {
     return Row(
       children: [
-        Icon(Icons.check_box_rounded, size: 14, color: accentColor.withValues(alpha: 0.8)),
+        Icon(
+          Icons.check_box_rounded,
+          size: 14,
+          color: accentColor.withValues(alpha: 0.8),
+        ),
         const SizedBox(width: 6),
         Expanded(
           child: Container(
             height: 6,
             decoration: BoxDecoration(
-              color: const Color(0xFFE4ECF5),
+              color: AppColors.border,
               borderRadius: BorderRadius.circular(3),
             ),
           ),
